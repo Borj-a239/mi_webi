@@ -5,13 +5,49 @@
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var finePointer = window.matchMedia("(pointer: fine)").matches;
 
+  /* ===== FOCUS TRAP (para los modales) ===== */
+  var _trap = { modal: null, last: null, handler: null };
+  function focusables(el) {
+    return Array.prototype.filter.call(
+      el.querySelectorAll('a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'),
+      function (n) { return n.offsetWidth || n.offsetHeight || n.getClientRects().length; }
+    );
+  }
+  function activateTrap(modal) {
+    deactivateTrap();
+    _trap.modal = modal;
+    _trap.last = document.activeElement;
+    _trap.handler = function (e) {
+      if (e.key !== "Tab") return;
+      var f = focusables(modal);
+      if (!f.length) { e.preventDefault(); return; }
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", _trap.handler);
+  }
+  function deactivateTrap() {
+    if (_trap.handler) { document.removeEventListener("keydown", _trap.handler); _trap.handler = null; }
+    if (_trap.modal && _trap.last && typeof _trap.last.focus === "function") {
+      try { _trap.last.focus(); } catch (e) {}
+    }
+    _trap.modal = null; _trap.last = null;
+  }
+
   /* ===== TEMA ===== */
   var themeToggle = document.getElementById("themeToggle");
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
   function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
+  function updateThemeColor() {
+    if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#eef1f8" : "#0a0a0f");
+  }
+  updateThemeColor();
   if (themeToggle) {
     themeToggle.addEventListener("click", function () {
       var next = currentTheme() === "dark" ? "light" : "dark";
       document.documentElement.dataset.theme = next;
+      updateThemeColor();
       try { localStorage.setItem("theme", next); } catch (e) {}
     });
   }
@@ -107,9 +143,17 @@
     });
   }
 
-  /* ===== VOLVER ARRIBA ===== */
+  /* ===== VOLVER ARRIBA + BARRA DE PROGRESO ===== */
   var toTop = document.getElementById("toTop");
-  function toggleToTop() { if (toTop) toTop.classList.toggle("show", window.scrollY > 500); }
+  var scrollBar = document.getElementById("scrollProgressBar");
+  function toggleToTop() {
+    if (toTop) toTop.classList.toggle("show", window.scrollY > 500);
+    if (scrollBar) {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+      scrollBar.style.width = pct + "%";
+    }
+  }
   window.addEventListener("scroll", toggleToTop, { passive: true });
   toggleToTop();
   if (toTop) {
@@ -161,6 +205,7 @@
   var lbNext = document.getElementById("lbNext");
   var lbIndex = 0;
   function openLightbox(i) {
+    if (!lightbox.classList.contains("open")) activateTrap(lightbox);
     lbIndex = i;
     var img = slides[i].querySelector("img");
     var cap = slides[i].querySelector("figcaption");
@@ -171,7 +216,7 @@
     document.body.style.overflow = "hidden";
     if (lbClose) lbClose.focus();
   }
-  function closeLightbox() { lightbox.classList.remove("open"); document.body.style.overflow = ""; }
+  function closeLightbox() { lightbox.classList.remove("open"); document.body.style.overflow = ""; deactivateTrap(); }
   function lbGo(i) { openLightbox((i + slides.length) % slides.length); }
   slides.forEach(function (s, i) { s.addEventListener("click", function () { openLightbox(i); }); });
   if (lbClose) lbClose.addEventListener("click", closeLightbox);
@@ -188,7 +233,7 @@
       return;
     }
     if (e.key === "Escape") { closeSidebar(); closeKonami(); }
-    if (e.key === "t" || e.key === "T") { if (themeToggle && !e.target.closest("input,textarea")) themeToggle.click(); }
+    if ((e.key === "t" || e.key === "T") && themeToggle && !e.target.closest("input,textarea")) themeToggle.click();
   });
 
   /* ===== REVEAL ===== */
@@ -265,33 +310,81 @@
   }
 
   /* ===== FORMULARIO DE CONTACTO ===== */
-  // >>> Pega aquí la URL de Formspree o Web3Forms. Si la dejas vacía, simula el envío. <<<
+  // >>> Pega aquí la URL de Formspree/Web3Forms. Si la dejas vacía, simula el envío. <<<
   var FORM_ENDPOINT = "";
   var form = document.getElementById("contactForm");
   var formStatus = document.getElementById("formStatus");
   var thanks = document.getElementById("thanks");
   var thanksClose = document.getElementById("thanksClose");
-  function showThanks() {
-    if (thanks) { thanks.classList.add("show"); thanks.setAttribute("aria-hidden", "false"); if (thanksClose) thanksClose.focus(); }
+
+  var fName = document.getElementById("formName");
+  var fEmail = document.getElementById("formEmail");
+  var fMsg = document.getElementById("formMsg");
+  var errName = document.getElementById("errName");
+  var errEmail = document.getElementById("errEmail");
+  var errMsg = document.getElementById("errMsg");
+  var charCount = document.getElementById("charCount");
+  var MAX_MSG = 500;
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function mark(input, errEl, ok, msg) {
+    if (ok) { input.classList.remove("invalid"); if (errEl) errEl.textContent = ""; }
+    else { input.classList.add("invalid"); if (errEl) errEl.textContent = msg; }
   }
-  function hideThanks() { if (thanks) { thanks.classList.remove("show"); thanks.setAttribute("aria-hidden", "true"); } }
+  function validateName() {
+    var v = fName.value.trim();
+    if (v === "") { fName.classList.remove("invalid"); errName.textContent = ""; return false; }
+    mark(fName, errName, v.length >= 2, "Introduce al menos 2 caracteres");
+    return v.length >= 2;
+  }
+  function validateEmail() {
+    var v = fEmail.value.trim();
+    if (v === "") { fEmail.classList.remove("invalid"); errEmail.textContent = ""; return false; }
+    mark(fEmail, errEmail, emailRe.test(v), "Formato de email no válido");
+    return emailRe.test(v);
+  }
+  function validateMsg() {
+    var n = fMsg.value.length;
+    if (charCount) {
+      charCount.textContent = n + "/" + MAX_MSG;
+      charCount.classList.toggle("warn", n > MAX_MSG * 0.9);
+    }
+    if (n === 0) { fMsg.classList.remove("invalid"); errMsg.textContent = ""; return false; }
+    mark(fMsg, errMsg, n >= 10, "El mensaje es muy corto (mín. 10)");
+    return n >= 10;
+  }
+  if (fName) fName.addEventListener("input", validateName);
+  if (fEmail) fEmail.addEventListener("input", validateEmail);
+  if (fMsg) fMsg.addEventListener("input", validateMsg);
+
+  function showThanks() {
+    if (thanks) { activateTrap(thanks); thanks.classList.add("show"); thanks.setAttribute("aria-hidden", "false"); if (thanksClose) thanksClose.focus(); }
+  }
+  function hideThanks() { if (thanks) { thanks.classList.remove("show"); thanks.setAttribute("aria-hidden", "true"); deactivateTrap(); } }
   if (thanksClose) thanksClose.addEventListener("click", hideThanks);
+
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      if (!form.checkValidity()) { form.reportValidity(); return; }
-      var data = {
-        name: form.name.value,
-        email: form.email.value,
-        message: form.message.value
-      };
+      var okName = validateName();
+      var okEmail = validateEmail();
+      var okMsg = validateMsg();
+      if (!okName || !okEmail || !okMsg) {
+        if (!okName && fName.value.trim() === "") mark(fName, errName, false, "Este campo es obligatorio");
+        if (!okEmail && fEmail.value.trim() === "") mark(fEmail, errEmail, false, "Este campo es obligatorio");
+        if (!okMsg && fMsg.value.length === 0) mark(fMsg, errMsg, false, "Este campo es obligatorio");
+        formStatus.textContent = "Revisa los campos marcados en rojo.";
+        formStatus.classList.add("error");
+        return;
+      }
+      var data = { name: fName.value, email: fEmail.value, message: fMsg.value };
       formStatus.textContent = "Enviando…";
       formStatus.classList.remove("error");
       if (!FORM_ENDPOINT) {
-        // Modo demo: simula éxito para poder ver la página de gracias.
         setTimeout(function () {
           formStatus.textContent = "";
           form.reset();
+          if (charCount) charCount.textContent = "0/" + MAX_MSG;
           showThanks();
         }, 700);
         return;
@@ -305,6 +398,7 @@
         if (!r.ok) throw new Error("bad");
         formStatus.textContent = "";
         form.reset();
+        if (charCount) charCount.textContent = "0/" + MAX_MSG;
         showThanks();
       })
       .catch(function () {
@@ -377,9 +471,10 @@
   var konami = document.getElementById("konami");
   var confetti = document.getElementById("confetti");
   var konamiClose = document.getElementById("konamiClose");
-  function closeKonami() { if (konami) { konami.classList.remove("show"); konami.setAttribute("aria-hidden", "true"); } }
+  function closeKonami() { if (konami) { konami.classList.remove("show"); konami.setAttribute("aria-hidden", "true"); deactivateTrap(); } }
   function launchKonami() {
     if (!konami) return;
+    activateTrap(konami);
     konami.classList.add("show"); konami.setAttribute("aria-hidden", "false");
     if (!prefersReducedMotion && confetti) {
       confetti.innerHTML = "";

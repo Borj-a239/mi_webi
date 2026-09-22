@@ -9,15 +9,12 @@
   <meta name="author" content="Borja Albert Bataller" />
   <meta name="theme-color" content="#0a0a0f" />
 
-  <!-- Favicon / monograma -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23e50914'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='white' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>" />
 
-  <!-- Tipografía propia -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Open Graph / redes -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Borja Albert Bataller | Web personal" />
   <meta property="og:description" content="Estudiante de 1º DAM, apasionado de los shooters, la tecnología y el fútbol." />
@@ -25,15 +22,15 @@
 
   <script>
     (function () {
+      var t;
       try {
-        var t = localStorage.getItem("theme");
+        t = localStorage.getItem("theme");
         if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        document.documentElement.dataset.theme = t;
-        document.documentElement.classList.add("js");
-      } catch (e) {
-        document.documentElement.dataset.theme = "dark";
-        document.documentElement.classList.add("js");
-      }
+      } catch (e) { t = "dark"; }
+      document.documentElement.dataset.theme = t;
+      document.documentElement.classList.add("js");
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "light" ? "#eef1f8" : "#0a0a0f");
     })();
   </script>
 
@@ -42,7 +39,8 @@
 </head>
 
 <body>
-  <!-- Cursor personalizado (solo puntero fino) -->
+  <div class="scroll-progress" aria-hidden="true"><span id="scrollProgressBar"></span></div>
+
   <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
   <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
@@ -107,7 +105,6 @@
     <button class="lb-nav lb-next" id="lbNext" aria-label="Imagen siguiente">›</button>
   </div>
 
-  <!-- Easter egg: Konami -->
   <div class="konami" id="konami" role="dialog" aria-modal="true" aria-label="Secreto desbloqueado" aria-hidden="true">
     <div class="konami-card">
       <span class="konami-code">↑ ↑ ↓ ↓ ← → ← → B A</span>
@@ -118,7 +115,6 @@
     <div class="confetti" id="confetti" aria-hidden="true"></div>
   </div>
 
-  <!-- Página de gracias (estado en la propia web) -->
   <div class="thanks" id="thanks" role="dialog" aria-modal="true" aria-label="Mensaje enviado" aria-hidden="true">
     <div class="thanks-card">
       <div class="thanks-icon">✓</div>
@@ -256,7 +252,7 @@
           </figure>
 
           <nav class="social" aria-label="Redes sociales">
-            <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/Borj-a239" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
           </nav>
@@ -267,14 +263,18 @@
             <div class="field">
               <label for="formName">Nombre</label>
               <input type="text" id="formName" name="name" required autocomplete="name" />
+              <span class="field-error" id="errName"></span>
             </div>
             <div class="field">
               <label for="formEmail">Email</label>
               <input type="email" id="formEmail" name="email" required autocomplete="email" />
+              <span class="field-error" id="errEmail"></span>
             </div>
             <div class="field">
               <label for="formMsg">Mensaje</label>
-              <textarea id="formMsg" name="message" rows="4" required></textarea>
+              <textarea id="formMsg" name="message" rows="4" required maxlength="500"></textarea>
+              <span class="char-count" id="charCount">0/500</span>
+              <span class="field-error" id="errMsg"></span>
             </div>
             <button type="submit" class="btn btn-submit">Enviar mensaje</button>
             <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
@@ -294,7 +294,6 @@
     </footer>
   </div>
 
-  <!-- Menú inferior (solo móvil) -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Navegación inferior">
     <a href="#inicio" class="bottom-link active"><span class="bn-icon">⌂</span><span class="bn-label">Inicio</span></a>
     <a href="#sobre-mi" class="bottom-link"><span class="bn-icon">☺</span><span class="bn-label">Sobre</span></a>

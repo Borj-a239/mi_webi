@@ -49,7 +49,6 @@
   --title-glow: 0 2px 18px rgba(0, 87, 224, 0.15), 0 0 14px rgba(216, 16, 34, 0.12);
 }
 
-/* ===== PALETA DE MARCA (token de referencia) ===== */
 :root {
   --brand-red: #e50914;
   --brand-blue: #0066ff;
@@ -86,6 +85,10 @@ kbd {
   padding: 0.75rem 1rem; z-index: 1000; border-radius: 0 0 10px 10px; font-weight: 700; text-decoration: none;
 }
 .skip-link:focus { left: 0; }
+
+/* ===== BARRA DE PROGRESO DE SCROLL ===== */
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 205; background: transparent; }
+.scroll-progress span { display: block; height: 100%; width: 0; background: var(--brand-grad); box-shadow: 0 0 8px var(--accent-2); transition: width 0.1s linear; }
 
 /* ===== MONOGRAMA "BA" ===== */
 .monogram {
@@ -313,6 +316,10 @@ address a:hover, address a:focus-visible { color: var(--accent-2); text-decorati
 .field label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-soft); }
 .field input, .field textarea { width: 100%; padding: 0.8rem 0.95rem; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 0.98rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.2); }
+.field input.invalid, .field textarea.invalid { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2); }
+.field-error { font-size: 0.78rem; color: var(--accent); min-height: 1em; }
+.char-count { justify-self: end; font-size: 0.75rem; color: var(--muted); transition: color 0.2s ease; }
+.char-count.warn { color: var(--accent); font-weight: 700; }
 .btn-submit { justify-self: center; }
 .form-status { margin: 0; font-size: 0.9rem; min-height: 1.2em; color: var(--text-soft); text-align: center; }
 .form-status.error { color: var(--accent); }
@@ -404,6 +411,7 @@ html:not(.js) .reveal, html:not(.js) .card, html:not(.js) .tl-item, html:not(.js
   body { cursor: auto !important; }
 }
 
+/* ===== PÁGINAS SUELTAS (404 / gracias) ===== */
 .notfound { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 1rem; text-align: center; padding: 2rem; background: radial-gradient(circle at top, color-mix(in srgb, var(--bg) 88%, #1a1a24), var(--bg)); }
 .notfound h1 { font-size: clamp(4rem, 18vw, 9rem); margin: 0; line-height: 1; color: var(--text); text-shadow: var(--title-glow); }
 .nf-msg { color: var(--text-soft); max-width: 40ch; margin: 0 auto; }
