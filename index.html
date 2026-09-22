@@ -2,78 +2,67 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
-  <!-- Codificación de caracteres -->
   <meta charset="UTF-8" />
-
-  <!-- Viewport para diseño responsive -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Título de la pestaña -->
   <title>Borja Albert Bataller | Web personal</title>
-
-  <!-- Descripción SEO -->
-  <meta
-    name="description"
-    content="Web personal de Borja Albert Bataller, estudiante de 1º DAM en el IES Simarro, apasionado de la tecnología, los videojuegos y el fútbol."
-  />
-
-  <!-- Autor -->
+  <meta name="description" content="Web personal de Borja Albert Bataller, estudiante de 1º DAM en el IES Simarro, apasionado de la tecnología, los videojuegos y el fútbol." />
   <meta name="author" content="Borja Albert Bataller" />
-
-  <!-- Color de tema -->
   <meta name="theme-color" content="#0a0a0f" />
 
-  <!-- Aplica el tema antes de pintar (evita parpadeo) -->
+  <!-- Favicon / monograma -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23e50914'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='white' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>" />
+
+  <!-- Tipografía propia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Open Graph / redes -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Borja Albert Bataller | Web personal" />
+  <meta property="og:description" content="Estudiante de 1º DAM, apasionado de los shooters, la tecnología y el fútbol." />
+  <meta property="og:image" content="img/tech.jpg" />
+
   <script>
     (function () {
       try {
         var t = localStorage.getItem("theme");
-        if (!t) {
-          t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        }
+        if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
         document.documentElement.dataset.theme = t;
+        document.documentElement.classList.add("js");
       } catch (e) {
         document.documentElement.dataset.theme = "dark";
+        document.documentElement.classList.add("js");
       }
     })();
   </script>
 
-  <!-- Hoja de estilos -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Script JavaScript -->
   <script src="script.js" defer></script>
 </head>
 
 <body>
-  <!-- Loader / transición de entrada (gamer) -->
+  <!-- Cursor personalizado (solo puntero fino) -->
+  <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+  <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
   <div class="loader" id="loader" aria-hidden="true">
     <div class="loader-inner">
-      <span class="loader-logo">BA</span>
+      <span class="loader-logo monogram">BA</span>
       <span class="loader-text">CARGANDO…</span>
       <div class="loader-bar"><span id="loaderBar"></span></div>
     </div>
   </div>
 
-  <!-- Cortinilla para transición de página -->
   <div class="curtain" id="curtain" aria-hidden="true"></div>
 
-  <!-- Enlace de salto para accesibilidad -->
   <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
-  <!-- Botón para abrir/cerrar/colapsar el índice lateral -->
-  <button
-    class="menu-toggle"
-    id="menuToggle"
-    aria-label="Índice de navegación"
-    aria-expanded="false"
-    aria-controls="sidebar"
-  >
+  <button class="menu-toggle" id="menuToggle" aria-label="Índice de navegación" aria-expanded="false" aria-controls="sidebar">
     <span class="bars"><span></span><span></span><span></span></span>
     <span class="x" aria-hidden="true"></span>
   </button>
 
-  <!-- Botón de modo claro / oscuro -->
   <button class="theme-toggle" id="themeToggle" aria-label="Cambiar modo claro/oscuro">
     <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <circle cx="12" cy="12" r="4"></circle>
@@ -84,69 +73,30 @@
     </svg>
   </button>
 
-  <!-- Índice lateral extensible -->
   <nav class="sidebar" id="sidebar" aria-label="Índice de navegación">
     <div class="sidebar-head">
+      <span class="monogram monogram-sm" aria-hidden="true">BA</span>
       <span class="sidebar-brand">Índice</span>
-      <button class="sidebar-close" id="sidebarClose" aria-label="Cerrar índice">
-        ✕
-      </button>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Cerrar índice">✕</button>
     </div>
-
-    <!-- Lista de secciones -->
     <ul class="sidebar-nav">
-      <li>
-        <a href="#inicio" class="nav-link active">
-          <span class="num">01</span>
-          <span class="label">Inicio</span>
-        </a>
-      </li>
-      <li>
-        <a href="#sobre-mi" class="nav-link">
-          <span class="num">02</span>
-          <span class="label">Sobre mí</span>
-        </a>
-      </li>
-      <li>
-        <a href="#hecho" class="nav-link">
-          <span class="num">03</span>
-          <span class="label">Lo que he hecho</span>
-        </a>
-      </li>
-      <li>
-        <a href="#formacion" class="nav-link">
-          <span class="num">04</span>
-          <span class="label">Formación</span>
-        </a>
-      </li>
-      <li>
-        <a href="#gusta" class="nav-link">
-          <span class="num">05</span>
-          <span class="label">Me gusta</span>
-        </a>
-      </li>
-      <li>
-        <a href="#contacto" class="nav-link">
-          <span class="num">06</span>
-          <span class="label">Contacto</span>
-        </a>
-      </li>
+      <li><a href="#inicio" class="nav-link active"><span class="num">01</span><span class="label">Inicio</span></a></li>
+      <li><a href="#sobre-mi" class="nav-link"><span class="num">02</span><span class="label">Sobre mí</span></a></li>
+      <li><a href="#hecho" class="nav-link"><span class="num">03</span><span class="label">Lo que he hecho</span></a></li>
+      <li><a href="#formacion" class="nav-link"><span class="num">04</span><span class="label">Formación</span></a></li>
+      <li><a href="#gusta" class="nav-link"><span class="num">05</span><span class="label">Me gusta</span></a></li>
+      <li><a href="#contacto" class="nav-link"><span class="num">06</span><span class="label">Contacto</span></a></li>
     </ul>
-
-    <!-- Pie del índice -->
     <div class="sidebar-foot">
       <span class="dot"></span>
       <span class="label">1º DAM · IES Simarro</span>
     </div>
   </nav>
 
-  <!-- Fondo oscurecido (solo móvil) -->
   <div class="overlay" id="overlay"></div>
 
-  <!-- Botón volver arriba -->
   <button class="to-top" id="toTop" aria-label="Volver arriba">↑</button>
 
-  <!-- Lightbox (ampliar imagen) -->
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
     <button class="lb-close" id="lbClose" aria-label="Cerrar imagen">✕</button>
     <button class="lb-nav lb-prev" id="lbPrev" aria-label="Imagen anterior">‹</button>
@@ -157,175 +107,113 @@
     <button class="lb-nav lb-next" id="lbNext" aria-label="Imagen siguiente">›</button>
   </div>
 
-  <!-- Contenedor de toda la página -->
+  <!-- Easter egg: Konami -->
+  <div class="konami" id="konami" role="dialog" aria-modal="true" aria-label="Secreto desbloqueado" aria-hidden="true">
+    <div class="konami-card">
+      <span class="konami-code">↑ ↑ ↓ ↓ ← → ← → B A</span>
+      <h3>¡Modo Simarro desbloqueado!</h3>
+      <p>Eres de los míos. Sigue programando, gamer. 🎮</p>
+      <button class="btn" id="konamiClose" type="button">Cerrar</button>
+    </div>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+  </div>
+
+  <!-- Página de gracias (estado en la propia web) -->
+  <div class="thanks" id="thanks" role="dialog" aria-modal="true" aria-label="Mensaje enviado" aria-hidden="true">
+    <div class="thanks-card">
+      <div class="thanks-icon">✓</div>
+      <h3>¡Mensaje enviado!</h3>
+      <p>Gracias por escribirme. Te responderé al correo lo antes posible.</p>
+      <button class="btn" id="thanksClose" type="button">Volver</button>
+    </div>
+  </div>
+
   <div class="page">
-    <!-- Cabecera principal -->
     <header class="hero" id="inicio">
-      <!-- Contenido de la cabecera -->
+      <canvas class="hero-particles" id="heroCanvas" aria-hidden="true"></canvas>
       <div class="hero-content">
-        <!-- Etiqueta gamer -->
         <p class="badge">Gamer · 1º DAM · Valencia</p>
-
-        <!-- Nombre -->
         <h1>Borja Albert Bataller</h1>
-
-        <!-- Frase principal -->
-        <p class="tagline" id="tagline">
-          Programador en formación, apasionado de los shooters, la tecnología y el fútbol.
-        </p>
-
-        <!-- Acciones -->
+        <p class="tagline" id="tagline">Programador en formación, apasionado de los shooters, la tecnología y el fútbol.</p>
         <div class="hero-actions">
           <a class="btn" href="#contacto">Contactar</a>
           <a class="btn btn-ghost" href="#sobre-mi">Sobre mí</a>
         </div>
       </div>
-
-      <!-- Indicador de desplazamiento -->
       <a href="#sobre-mi" class="scroll-hint" aria-label="Bajar a Sobre mí">
         <span class="mouse"><span class="wheel"></span></span>
       </a>
     </header>
 
-    <!-- Contenido principal -->
     <main id="contenido">
-      <!-- Sección Sobre mí -->
       <section id="sobre-mi" class="section reveal" aria-labelledby="sobre-mi-title">
         <h2 id="sobre-mi-title">Sobre mí</h2>
-
         <div class="grid">
-          <!-- Tarjeta de estudios -->
           <article class="card azul">
             <h3>Estudios</h3>
-            <p>
-              Estudiante de <strong>1º DAM</strong> en el <strong>IES Simarro</strong>.
-            </p>
-            <p>
-              Mi objetivo es trabajar como programador o llegar a ser profesor.
-            </p>
+            <p>Estudiante de <strong>1º DAM</strong> en el <strong>IES Simarro</strong>.</p>
+            <p>Mi objetivo es trabajar como programador o llegar a ser profesor.</p>
           </article>
-
-          <!-- Tarjeta de perfil -->
           <article class="card rojo">
             <h3>Perfil</h3>
-            <p>
-              Me interesa la tecnología, el desarrollo de software y el aprendizaje continuo.
-            </p>
-            <p>
-              Disfruto jugando al fútbol y a videojuegos, especialmente shooters en primera persona.
-            </p>
+            <p>Me interesa la tecnología, el desarrollo de software y el aprendizaje continuo.</p>
+            <p>Disfruto jugando al fútbol y a videojuegos, especialmente shooters en primera persona.</p>
           </article>
         </div>
       </section>
 
-      <!-- Sección Lo que he hecho -->
       <section id="hecho" class="section reveal" aria-labelledby="hecho-title">
         <h2 id="hecho-title">Lo que he hecho</h2>
-
         <div class="grid">
-          <!-- Tarjeta en proceso -->
           <article class="card azul">
             <h3>En proceso</h3>
-            <ul>
-              <li>1º GS DAM</li>
-            </ul>
+            <ul><li>1º GS DAM</li></ul>
           </article>
-
-          <!-- Tarjeta completados -->
           <article class="card">
             <h3>Completados</h3>
-            <ul>
-              <li>Primaria</li>
-              <li>Secundaria</li>
-              <li>GM de SMX</li>
-            </ul>
+            <ul><li>Primaria</li><li>Secundaria</li><li>GM de SMX</li></ul>
           </article>
-
-          <!-- Tarjeta hobbies -->
           <article class="card rojo">
             <h3>Hobbies</h3>
-            <ul>
-              <li>Jugar al fútbol</li>
-              <li>Jugar a los videojuegos</li>
-            </ul>
+            <ul><li>Jugar al fútbol</li><li>Jugar a los videojuegos</li></ul>
           </article>
         </div>
       </section>
 
-      <!-- Sección Formación (línea de tiempo vertical) -->
       <section id="formacion" class="section reveal" aria-labelledby="formacion-title">
         <h2 id="formacion-title">Formación</h2>
-
         <ol class="timeline">
-          <!-- Primaria -->
           <li class="tl-item done">
             <span class="tl-dot" aria-hidden="true"></span>
-            <div class="tl-content">
-              <span class="tl-tag">Completado</span>
-              <h3>Primaria</h3>
-              <p>Etapa base de mi formación académica.</p>
-            </div>
+            <div class="tl-content"><span class="tl-tag">Completado</span><h3>Primaria</h3><p>Etapa base de mi formación académica.</p></div>
           </li>
-
-          <!-- Secundaria -->
           <li class="tl-item done">
             <span class="tl-dot" aria-hidden="true"></span>
-            <div class="tl-content">
-              <span class="tl-tag">Completado</span>
-              <h3>Secundaria</h3>
-              <p>Primer contacto con la tecnología y la lógica.</p>
-            </div>
+            <div class="tl-content"><span class="tl-tag">Completado</span><h3>Secundaria</h3><p>Primer contacto con la tecnología y la lógica.</p></div>
           </li>
-
-          <!-- GM SMX -->
           <li class="tl-item done">
             <span class="tl-dot" aria-hidden="true"></span>
-            <div class="tl-content">
-              <span class="tl-tag">Completado</span>
-              <h3>GM de SMX</h3>
-              <p>Sistemas Microinformáticos y Redes.</p>
-            </div>
+            <div class="tl-content"><span class="tl-tag">Completado</span><h3>GM de SMX</h3><p>Sistemas Microinformáticos y Redes.</p></div>
           </li>
-
-          <!-- DAM en curso -->
           <li class="tl-item current">
             <span class="tl-dot" aria-hidden="true"></span>
-            <div class="tl-content">
-              <span class="tl-tag">En curso</span>
-              <h3>1º GS DAM</h3>
-              <p>Desarrollo de Aplicaciones Multiplataforma · IES Simarro.</p>
-            </div>
+            <div class="tl-content"><span class="tl-tag">En curso</span><h3>1º GS DAM</h3><p>Desarrollo de Aplicaciones Multiplataforma · IES Simarro.</p></div>
           </li>
-
-          <!-- Meta -->
           <li class="tl-item goal">
             <span class="tl-dot" aria-hidden="true"></span>
-            <div class="tl-content">
-              <span class="tl-tag">Meta</span>
-              <h3>Programador / Profesor</h3>
-              <p>Mi objetivo: trabajar programando o enseñando lo que aprendo.</p>
-            </div>
+            <div class="tl-content"><span class="tl-tag">Meta</span><h3>Programador / Profesor</h3><p>Mi objetivo: trabajar programando o enseñando lo que aprendo.</p></div>
           </li>
         </ol>
       </section>
 
-      <!-- Sección Me gusta -->
       <section id="gusta" class="section reveal" aria-labelledby="gusta-title">
         <h2 id="gusta-title">Me gusta</h2>
-
         <ul class="likes">
-          <li>
-            <strong>Videojuegos</strong> — shooters en primera persona como Halo, CS2, Valorant, Call of Duty, Rainbow Six Siege y Battlefield.
-          </li>
-          <li>
-            <strong>Tecnología</strong> — montaje de PC, instalación y configuración de dispositivos de red, hardware y software.
-          </li>
-          <li>
-            <strong>Fútbol</strong> — jugar al fútbol y ser <strong>fan del Atlético de Madrid</strong>.
-          </li>
+          <li><strong>Videojuegos</strong> — shooters en primera persona como Halo, CS2, Valorant, Call of Duty, Rainbow Six Siege y Battlefield.</li>
+          <li><strong>Tecnología</strong> — montaje de PC, instalación y configuración de dispositivos de red, hardware y software.</li>
+          <li><strong>Fútbol</strong> — jugar al fútbol y ser <strong>fan del Atlético de Madrid</strong>.</li>
         </ul>
 
-        <!-- Carrusel de imágenes (clic para ampliar) -->
         <div class="carousel" id="carousel" aria-label="Galería de imágenes">
           <div class="carousel-track" id="carouselTrack">
             <figure class="slide">
@@ -337,54 +225,83 @@
               <figcaption>Tecnología — montaje de PC y redes</figcaption>
             </figure>
             <figure class="slide">
-              <img src="img/images.png" alt="Fútbol y Atlético de Madrid" loading="lazy" />
+              <img src="img/imagenes.png" alt="Fútbol y Atlético de Madrid" loading="lazy" />
               <figcaption>Fútbol — fan del Atlético de Madrid</figcaption>
             </figure>
           </div>
-
           <button class="car-btn car-prev" id="carPrev" aria-label="Imagen anterior">‹</button>
           <button class="car-btn car-next" id="carNext" aria-label="Imagen siguiente">›</button>
-
           <div class="car-dots" id="carDots"></div>
         </div>
       </section>
     </main>
 
-    <!-- Pie de página -->
     <footer id="contacto" class="footer reveal">
       <div class="footer-content">
-        <!-- Título de contacto -->
-        <h2>Contacto</h2>
+        <div class="footer-col">
+          <h2>Contacto</h2>
+          <div class="email-row">
+            <address>
+              <p><a href="mailto:boralbbat@alu.edu.gva.es" id="emailLink">boralbbat@alu.edu.gva.es</a></p>
+              <p>IES Simarro · Xàtiva, Comunitat Valenciana, España</p>
+            </address>
+            <button class="copy-btn" id="copyEmail" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo">
+              <span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span>
+            </button>
+          </div>
 
-        <!-- Imagen del instituto -->
-        <figure class="ies-figure">
-          <img src="img/ies.jpg" alt="IES Simarro" loading="lazy" />
-          <figcaption>IES Simarro · Xàtiva</figcaption>
-        </figure>
+          <figure class="ies-figure">
+            <img src="img/ies.jpg" alt="IES Simarro" loading="lazy" />
+            <figcaption>IES Simarro · Xàtiva</figcaption>
+          </figure>
 
-        <!-- Dirección de contacto -->
-        <address>
-          <p>
-            <a href="mailto:boralbbat@alu.edu.gva.es">
-              boralbbat@alu.edu.gva.es
-            </a>
-          </p>
-          <p>IES Simarro · Xàtiva, Comunitat Valenciana, España</p>
-        </address>
+          <nav class="social" aria-label="Redes sociales">
+            <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
+          </nav>
+        </div>
 
-        <!-- Redes sociales -->
-        <nav class="social" aria-label="Redes sociales">
-          <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
-        </nav>
+        <div class="footer-col">
+          <form class="contact-form" id="contactForm" novalidate>
+            <div class="field">
+              <label for="formName">Nombre</label>
+              <input type="text" id="formName" name="name" required autocomplete="name" />
+            </div>
+            <div class="field">
+              <label for="formEmail">Email</label>
+              <input type="email" id="formEmail" name="email" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="formMsg">Mensaje</label>
+              <textarea id="formMsg" name="message" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-submit">Enviar mensaje</button>
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          </form>
 
-        <!-- Copyright -->
-        <p class="copyright">
-          © <span id="year">2026</span> Borja Albert Bataller
-        </p>
+          <div class="map-wrap">
+            <iframe
+              title="Mapa de Xàtiva, Comunitat Valenciana"
+              src="https://maps.google.com/maps?q=X%C3%A0tiva%20Valencia&z=13&output=embed"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
       </div>
+
+      <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller</p>
     </footer>
   </div>
+
+  <!-- Menú inferior (solo móvil) -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Navegación inferior">
+    <a href="#inicio" class="bottom-link active"><span class="bn-icon">⌂</span><span class="bn-label">Inicio</span></a>
+    <a href="#sobre-mi" class="bottom-link"><span class="bn-icon">☺</span><span class="bn-label">Sobre</span></a>
+    <a href="#hecho" class="bottom-link"><span class="bn-icon">★</span><span class="bn-label">Hecho</span></a>
+    <a href="#formacion" class="bottom-link"><span class="bn-icon">⇪</span><span class="bn-label">Formación</span></a>
+    <a href="#gusta" class="bottom-link"><span class="bn-icon">♥</span><span class="bn-label">Gusta</span></a>
+    <a href="#contacto" class="bottom-link"><span class="bn-icon">✉</span><span class="bn-label">Contacto</span></a>
+  </nav>
 </body>
 </html>
