@@ -20,7 +20,6 @@
   <meta property="og:site_name" content="Borja Albert Bataller" />
   <meta property="og:title" content="Borja Albert Bataller | Web personal" />
   <meta property="og:description" content="Estudiante de 1º DAM, apasionado de los shooters, la tecnología y el fútbol." />
-  <!-- Cambia la URL por la real cuando publiques la web (debe ser absoluta para que funcione en redes) -->
   <meta property="og:url" content="https://borj-a239.github.io/web-personal/" />
   <meta property="og:image" content="https://borj-a239.github.io/web-personal/img/tech.jpg" />
   <meta property="og:locale" content="es_ES" />
@@ -236,7 +235,6 @@
         <div class="carousel" id="carousel" aria-label="Galería de imágenes">
           <div class="carousel-track" id="carouselTrack">
             <figure class="slide">
-              <!-- Ajusta width/height a las medidas reales de cada imagen (clic derecho > propiedades) -->
               <img src="img/halo.jpg" alt="Halo, mi shooter favorito" width="1280" height="720" loading="lazy" />
               <figcaption>Halo — mi shooter favorito</figcaption>
             </figure>
@@ -302,75 +300,116 @@
     </main>
 
     <footer id="contacto" class="footer reveal">
-      <div class="footer-content">
-        <div class="footer-col">
-          <h2>Contacto</h2>
-          <div class="email-row">
-            <address>
-              <p><a href="mailto:boralbbat@alu.edu.gva.es" id="emailLink">boralbbat@alu.edu.gva.es</a></p>
-              <p>IES Simarro · Xàtiva, Comunitat Valenciana, España</p>
-            </address>
-            <button class="copy-btn" id="copyEmail" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo">
-              <span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span>
-            </button>
-          </div>
-
-          <figure class="ies-figure">
-            <img src="img/ies.jpg" alt="IES Simarro" width="800" height="420" loading="lazy" />
-            <figcaption>IES Simarro · Xàtiva</figcaption>
-          </figure>
-
-          <nav class="social" aria-label="Redes sociales">
-            <a href="https://github.com/Borj-a239" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
-          </nav>
+      <div class="contact-shell">
+        <div class="contact-head">
+          <h2>Hablemos</h2>
+          <p>¿Tienes una idea, una práctica o simplemente quieres charlar de tecnología? Me encantará leerte.</p>
         </div>
 
-        <div class="footer-col">
-          <form class="contact-form" id="contactForm" novalidate>
-            <div class="field">
-              <label for="formName">Nombre</label>
-              <input type="text" id="formName" name="name" required autocomplete="name" />
-              <span class="field-error" id="errName"></span>
+        <div class="contact-grid">
+          <div class="contact-info">
+            <div class="info-card">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>
+              </span>
+              <div class="info-body">
+                <span class="info-label">Email</span>
+                <address class="info-value"><a href="mailto:boralbbat@alu.edu.gva.es" id="emailLink">boralbbat@alu.edu.gva.es</a></address>
+                <button class="copy-btn" id="copyEmail" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo">
+                  <span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span>
+                </button>
+              </div>
             </div>
-            <div class="field">
-              <label for="formEmail">Email</label>
-              <input type="email" id="formEmail" name="email" required autocomplete="email" />
-              <span class="field-error" id="errEmail"></span>
-            </div>
-            <div class="field">
-              <label for="formMsg">Mensaje</label>
-              <textarea id="formMsg" name="message" rows="4" required maxlength="500"></textarea>
-              <span class="char-count" id="charCount">0/500</span>
-              <span class="field-error" id="errMsg"></span>
-            </div>
-            <button type="submit" class="btn btn-submit">Enviar mensaje</button>
-            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-          </form>
 
-          <div class="map-wrap">
-            <iframe
-              title="Mapa de Xàtiva, Comunitat Valenciana"
-              src="https://maps.google.com/maps?q=X%C3%A0tiva%20Valencia&z=13&output=embed"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <div class="info-card">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </span>
+              <div class="info-body">
+                <span class="info-label">Ubicación</span>
+                <span class="info-value">Xàtiva · Comunitat Valenciana</span>
+                <a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z"></path></svg>
+              </span>
+              <div class="info-body">
+                <span class="info-label">Disponibilidad</span>
+                <span class="info-value"><span class="avail-dot" aria-hidden="true"></span>Abierto a prácticas y proyectos</span>
+              </div>
+            </div>
+
+            <figure class="ies-figure">
+              <img src="img/ies.jpg" alt="IES Simarro" width="800" height="420" loading="lazy" />
+              <figcaption>IES Simarro · Xàtiva, Comunitat Valenciana, España</figcaption>
+            </figure>
+
+            <nav class="social" aria-label="Redes sociales">
+              <a href="https://github.com/Borj-a239" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path></svg>
+                GitHub
+              </a>
+              <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z"></path></svg>
+                LinkedIn
+              </a>
+              <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.15-3.23 1.66-4.77 4.92-4.92 1.27-.06 1.65-.07 4.85-.07zM12 0C8.74 0 8.33.01 7.05.07 2.7.27.27 2.7.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.2 4.36 2.62 6.78 6.98 6.98C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c4.35-.2 6.78-2.62 6.98-6.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95C23.73 2.7 21.3.27 16.95.07 15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 12 18.16 6.16 6.16 0 0 0 12 5.84zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.41-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"></path></svg>
+                Instagram
+              </a>
+            </nav>
+          </div>
+
+          <div class="contact-form-wrap">
+            <h3 class="form-title">Envíame un mensaje</h3>
+            <form class="contact-form" id="contactForm" novalidate>
+              <div class="field">
+                <label for="formName">Nombre</label>
+                <input type="text" id="formName" name="name" required autocomplete="name" />
+                <span class="field-error" id="errName"></span>
+              </div>
+              <div class="field">
+                <label for="formEmail">Email</label>
+                <input type="email" id="formEmail" name="email" required autocomplete="email" />
+                <span class="field-error" id="errEmail"></span>
+              </div>
+              <div class="field">
+                <label for="formMsg">Mensaje</label>
+                <textarea id="formMsg" name="message" rows="4" required maxlength="500"></textarea>
+                <span class="char-count" id="charCount">0/500</span>
+                <span class="field-error" id="errMsg"></span>
+              </div>
+              <button type="submit" class="btn btn-submit">Enviar mensaje</button>
+              <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+            </form>
           </div>
         </div>
+
+        <div class="map-wrap">
+          <iframe
+            title="Mapa de Xàtiva, Comunitat Valenciana"
+            src="https://maps.google.com/maps?q=X%C3%A0tiva%20Valencia&z=13&output=embed"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+
+        <details class="changelog">
+          <summary>Changelog · v1.5</summary>
+          <ul class="changelog-list">
+            <li><b>v1.5 — 2026</b>Rediseño de la sección de contacto: tarjetas, iconos y panel destacado.</li>
+            <li><b>v1.4 — 2026</b>Case study honesto, badges de tecnologías, changelog, dimensiones en imágenes y Open Graph.</li>
+            <li><b>v1.3 — 2026</b>Barra de progreso, validación del formulario y foco atrapado en modales.</li>
+            <li><b>v1.2 — 2026</b>Formulario, mapa, monograma, cursor, partículas, easter egg y bottom nav.</li>
+            <li><b>v1.1 — 2026</b>Tema claro/oscuro, carrusel con lightbox y animaciones reveal.</li>
+            <li><b>v1.0 — 2026</b>Primera versión de la web personal.</li>
+          </ul>
+        </details>
+
+        <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller · Web en construcción 🚧</p>
       </div>
-
-      <details class="changelog">
-        <summary>Changelog · v1.4</summary>
-        <ul class="changelog-list">
-          <li><b>v1.4 — 2026</b>Case study honesto, badges de tecnologías, changelog, dimensiones en imágenes y Open Graph.</li>
-          <li><b>v1.3 — 2026</b>Barra de progreso, validación del formulario y foco atrapado en modales.</li>
-          <li><b>v1.2 — 2026</b>Formulario, mapa, monograma, cursor, partículas, easter egg y bottom nav.</li>
-          <li><b>v1.1 — 2026</b>Tema claro/oscuro, carrusel con lightbox y animaciones reveal.</li>
-          <li><b>v1.0 — 2026</b>Primera versión de la web personal.</li>
-        </ul>
-      </details>
-
-      <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller · Web en construcción 🚧</p>
     </footer>
   </div>
 
