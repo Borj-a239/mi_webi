@@ -15,10 +15,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
 
+  <!-- Open Graph / redes sociales -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Borja Albert Bataller" />
   <meta property="og:title" content="Borja Albert Bataller | Web personal" />
   <meta property="og:description" content="Estudiante de 1º DAM, apasionado de los shooters, la tecnología y el fútbol." />
-  <meta property="og:image" content="img/tech.jpg" />
+  <!-- Cambia la URL por la real cuando publiques la web (debe ser absoluta para que funcione en redes) -->
+  <meta property="og:url" content="https://borj-a239.github.io/web-personal/" />
+  <meta property="og:image" content="https://borj-a239.github.io/web-personal/img/tech.jpg" />
+  <meta property="og:locale" content="es_ES" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Borja Albert Bataller | Web personal" />
+  <meta name="twitter:description" content="Estudiante de 1º DAM, apasionado de los shooters, la tecnología y el fútbol." />
+  <meta name="twitter:image" content="https://borj-a239.github.io/web-personal/img/tech.jpg" />
 
   <script>
     (function () {
@@ -83,7 +92,8 @@
       <li><a href="#hecho" class="nav-link"><span class="num">03</span><span class="label">Lo que he hecho</span></a></li>
       <li><a href="#formacion" class="nav-link"><span class="num">04</span><span class="label">Formación</span></a></li>
       <li><a href="#gusta" class="nav-link"><span class="num">05</span><span class="label">Me gusta</span></a></li>
-      <li><a href="#contacto" class="nav-link"><span class="num">06</span><span class="label">Contacto</span></a></li>
+      <li><a href="#caso" class="nav-link"><span class="num">06</span><span class="label">Cómo la hice</span></a></li>
+      <li><a href="#contacto" class="nav-link"><span class="num">07</span><span class="label">Contacto</span></a></li>
     </ul>
     <div class="sidebar-foot">
       <span class="dot"></span>
@@ -133,7 +143,7 @@
         <p class="tagline" id="tagline">Programador en formación, apasionado de los shooters, la tecnología y el fútbol.</p>
         <div class="hero-actions">
           <a class="btn" href="#contacto">Contactar</a>
-          <a class="btn btn-ghost" href="#sobre-mi">Sobre mí</a>
+          <a class="btn btn-ghost" href="#caso">Cómo la hice</a>
         </div>
       </div>
       <a href="#sobre-mi" class="scroll-hint" aria-label="Bajar a Sobre mí">
@@ -155,6 +165,19 @@
             <p>Me interesa la tecnología, el desarrollo de software y el aprendizaje continuo.</p>
             <p>Disfruto jugando al fútbol y a videojuegos, especialmente shooters en primera persona.</p>
           </article>
+        </div>
+
+        <div class="tech-stack">
+          <h3>Tecnologías</h3>
+          <ul class="badges">
+            <li class="badge-tech"><span class="badge-dot" style="background:#E34C26"></span>HTML5</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#1572B6"></span>CSS3</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#F7DF1E"></span>JavaScript</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#F05032"></span>Git</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#8b5cf6"></span>GitHub</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#007ACC"></span>VS Code</li>
+            <li class="badge-tech"><span class="badge-dot" style="background:#A259FF"></span>Figma</li>
+          </ul>
         </div>
       </section>
 
@@ -213,15 +236,16 @@
         <div class="carousel" id="carousel" aria-label="Galería de imágenes">
           <div class="carousel-track" id="carouselTrack">
             <figure class="slide">
-              <img src="img/halo.jpg" alt="Halo, mi shooter favorito" loading="lazy" />
+              <!-- Ajusta width/height a las medidas reales de cada imagen (clic derecho > propiedades) -->
+              <img src="img/halo.jpg" alt="Halo, mi shooter favorito" width="1280" height="720" loading="lazy" />
               <figcaption>Halo — mi shooter favorito</figcaption>
             </figure>
             <figure class="slide">
-              <img src="img/tech.jpg" alt="Montaje de PC y dispositivos de red" loading="lazy" />
+              <img src="img/tech.jpg" alt="Montaje de PC y dispositivos de red" width="1280" height="720" loading="lazy" />
               <figcaption>Tecnología — montaje de PC y redes</figcaption>
             </figure>
             <figure class="slide">
-              <img src="img/imagenes.png" alt="Fútbol y Atlético de Madrid" loading="lazy" />
+              <img src="img/imagenes.png" alt="Fútbol y Atlético de Madrid" width="1280" height="720" loading="lazy" />
               <figcaption>Fútbol — fan del Atlético de Madrid</figcaption>
             </figure>
           </div>
@@ -229,6 +253,51 @@
           <button class="car-btn car-next" id="carNext" aria-label="Imagen siguiente">›</button>
           <div class="car-dots" id="carDots"></div>
         </div>
+      </section>
+
+      <section id="caso" class="section reveal" aria-labelledby="caso-title">
+        <h2 id="caso-title">Cómo la hice</h2>
+        <p class="lead">
+          Esta web es mi <strong>primer proyecto serio</strong> y lo he hecho a mano con lo que
+          voy aprendiendo en 1º DAM. No he usado frameworks ni plantillas: solo
+          <strong>HTML, CSS y JavaScript</strong>. Aquí cuento con honestidad qué he conseguido,
+          cómo, y qué me queda todavía por aprender.
+        </p>
+
+        <div class="grid">
+          <article class="card azul">
+            <h3>Stack</h3>
+            <p>HTML5, CSS3 y JavaScript vanilla. Sin librerías externas.</p>
+            <p>Se sirve como web estática y la gestiono con Git y GitHub.</p>
+          </article>
+          <article class="card rojo">
+            <h3>Decisiones</h3>
+            <p>Tema claro/oscuro con variables CSS y <code>localStorage</code>.</p>
+            <p>Responsive con Grid y Flexbox, y respeto por <code>prefers-reduced-motion</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Aprendido</h3>
+            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, y un poco de <code>canvas</code> para las partículas.</p>
+          </article>
+        </div>
+
+        <h3 class="case-sub">Lo que ya funciona</h3>
+        <ul class="case-list">
+          <li>Tema claro/oscuro que se recuerda al volver</li>
+          <li>Índice lateral con scroll-spy y transición de cortina</li>
+          <li>Carrusel con imagen ampliada y control por teclado</li>
+          <li>Validación del formulario en tiempo real</li>
+          <li>Adaptación a móvil (incluido menú inferior)</li>
+        </ul>
+
+        <h3 class="case-sub">Lo que me queda por mejorar</h3>
+        <ul class="case-list todo">
+          <li>Que el formulario envíe de verdad (ahora es una simulación)</li>
+          <li>Enlaces reales de LinkedIn e Instagram</li>
+          <li>Imágenes a mayor resolución y en WebP</li>
+          <li>Añadir más proyectos de clase</li>
+          <li>Un CV descargable en PDF</li>
+        </ul>
       </section>
     </main>
 
@@ -247,7 +316,7 @@
           </div>
 
           <figure class="ies-figure">
-            <img src="img/ies.jpg" alt="IES Simarro" loading="lazy" />
+            <img src="img/ies.jpg" alt="IES Simarro" width="800" height="420" loading="lazy" />
             <figcaption>IES Simarro · Xàtiva</figcaption>
           </figure>
 
@@ -290,7 +359,18 @@
         </div>
       </div>
 
-      <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller</p>
+      <details class="changelog">
+        <summary>Changelog · v1.4</summary>
+        <ul class="changelog-list">
+          <li><b>v1.4 — 2026</b>Case study honesto, badges de tecnologías, changelog, dimensiones en imágenes y Open Graph.</li>
+          <li><b>v1.3 — 2026</b>Barra de progreso, validación del formulario y foco atrapado en modales.</li>
+          <li><b>v1.2 — 2026</b>Formulario, mapa, monograma, cursor, partículas, easter egg y bottom nav.</li>
+          <li><b>v1.1 — 2026</b>Tema claro/oscuro, carrusel con lightbox y animaciones reveal.</li>
+          <li><b>v1.0 — 2026</b>Primera versión de la web personal.</li>
+        </ul>
+      </details>
+
+      <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller · Web en construcción 🚧</p>
     </footer>
   </div>
 

@@ -73,6 +73,11 @@ body {
 
 a { color: var(--accent-2); }
 h1, h2, h3 { line-height: 1.15; font-family: var(--font-display); }
+code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em; padding: 0.1em 0.4em; border-radius: 6px;
+  background: var(--kbd-bg); color: var(--text); border: 1px solid var(--border);
+}
 
 kbd {
   font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 2px 6px;
@@ -264,11 +269,32 @@ kbd {
 .likes li:hover { border-color: rgba(229, 9, 20, 0.5); background: var(--surface-hover); transform: translateY(-4px); }
 .likes li::before { content: "◆ "; color: var(--accent); }
 
+/* ===== BADGES DE TECNOLOGÍAS ===== */
+.tech-stack { margin-top: 2.25rem; }
+.tech-stack h3 { margin: 0 0 1rem; color: var(--text); font-size: 1.2rem; }
+.badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.badge-tech {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.45rem 0.9rem; border: 1px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); color: var(--text-soft); font-size: 0.85rem; font-weight: 700;
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+.badge-tech:hover { border-color: var(--accent); transform: translateY(-2px); background: var(--surface-hover); }
+.badge-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
+
+/* ===== CASE STUDY ===== */
+.case-sub { margin: 1.75rem 0 0.5rem; color: var(--text); font-size: 1.25rem; }
+.case-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.7rem 1.2rem; }
+.case-list li { position: relative; padding-left: 1.8rem; color: var(--text-soft); }
+.case-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--accent); font-weight: 900; }
+.case-list.todo li::before { content: "→"; color: var(--accent-2); font-weight: 900; }
+.case-list li code { font-size: 0.8em; }
+
 /* ===== CARRUSEL ===== */
-.carousel { position: relative; max-width: 720px; margin: 0 auto; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); box-shadow: 0 14px 34px var(--shadow); }
-.carousel-track { display: flex; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.carousel { position: relative; max-width: 560px; margin: 0 auto; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); box-shadow: 0 14px 34px var(--shadow); }
+.carousel-track { display: flex; aspect-ratio: 16 / 9; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
 .slide { position: relative; flex: 0 0 100%; margin: 0; cursor: zoom-in; }
-.slide img { display: block; width: 100%; height: 380px; object-fit: cover; }
+.slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .slide figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.5rem 1.1rem 0.9rem; color: #fff; font-weight: 600; text-align: center; background: linear-gradient(transparent, rgba(0, 0, 0, 0.75)); }
 .car-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 42px; height: 42px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; background: rgba(0, 0, 0, 0.45); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
 .car-btn:hover, .car-btn:focus-visible { background: var(--accent); border-color: var(--accent); transform: translateY(-50%) scale(1.08); }
@@ -309,6 +335,18 @@ address a:hover, address a:focus-visible { color: var(--accent-2); text-decorati
 .social a { padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); text-decoration: none; font-weight: 700; transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
 .social a:hover, .social a:focus-visible { background: rgba(0, 102, 255, 0.14); border-color: rgba(0, 102, 255, 0.45); transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 22px var(--shadow); }
 .copyright { color: var(--muted); font-size: 0.92rem; margin: 2rem auto 0; text-align: center; }
+
+/* ===== CHANGELOG ===== */
+.changelog { max-width: 560px; margin: 1.5rem auto 0; text-align: left; }
+.changelog summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-soft); font-weight: 700; font-size: 0.85rem; transition: border-color 0.2s ease, color 0.2s ease; }
+.changelog summary::-webkit-details-marker { display: none; }
+.changelog summary::before { content: "›"; display: inline-block; transition: transform 0.2s ease; color: var(--accent); font-size: 1.1rem; }
+.changelog[open] summary::before { transform: rotate(90deg); }
+.changelog summary:hover, .changelog[open] summary { border-color: var(--accent-2); color: var(--text); }
+.changelog-list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.7rem; }
+.changelog-list li { font-size: 0.9rem; color: var(--text-soft); border-left: 3px solid var(--border-strong); padding-left: 0.9rem; }
+.changelog-list li:first-child { border-left-color: var(--accent); }
+.changelog-list b { display: block; color: var(--text); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.15rem; }
 
 /* ===== FORMULARIO ===== */
 .contact-form { display: grid; gap: 0.9rem; text-align: left; max-width: 520px; margin: 0 auto; width: 100%; }
@@ -367,7 +405,7 @@ html:not(.js) .reveal, html:not(.js) .card, html:not(.js) .tl-item, html:not(.js
   body.sidebar-open .sidebar { transform: translateX(0); }
   body.sidebar-open .overlay { opacity: 1; visibility: visible; }
   .sidebar-close { display: block; }
-  .slide img { height: 260px; }
+  .carousel-track { aspect-ratio: 16 / 10; max-height: 340px; }
   .bottom-nav { display: flex; }
   .footer { padding-bottom: 6rem; }
   .to-top { bottom: 5.5rem; }
