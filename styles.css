@@ -219,6 +219,7 @@ kbd {
 .section h2 { margin: 0 0 1.75rem; font-size: clamp(1.8rem, 4vw, 2.6rem); color: var(--text); }
 .section h2::after { content: ""; display: block; width: 92px; height: 4px; margin-top: 0.7rem; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transform: scaleX(0); transform-origin: left; transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s; }
 .reveal.visible h2::after { transform: scaleX(1); }
+.section-intro { margin: 0 0 2rem; color: var(--text-soft); font-size: clamp(1.05rem, 2vw, 1.2rem); max-width: 72ch; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.1rem; }
 .card { background: linear-gradient(180deg, var(--surface), var(--surface-2)); border: 1px solid var(--border); border-radius: 18px; padding: 1.4rem; box-shadow: 0 12px 30px var(--shadow); opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease; }
 .reveal.visible .card { opacity: 1; transform: none; }
