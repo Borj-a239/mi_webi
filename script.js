@@ -256,7 +256,7 @@
     konami.setAttribute("aria-hidden", "false");
     if (!prefersReducedMotion && confetti) {
       confetti.innerHTML = "";
-      var cols = ["#e50914", "#0066ff", "#f8fafc", "#ffd166"];
+      var cols = ["#d4ff00", "#ff2a2a", "#ffffff", "#000000"];
       for (var i = 0; i < 80; i++) {
         var c = document.createElement("span");
         c.className = "confetti-piece";
@@ -433,9 +433,20 @@
     });
   }
 
-  /* ===== FORMULARIO DE CONTACTO ===== */
-  // >>> Pega aquí la URL de Formspree/Web3Forms. Si la dejas vacía, simula el envío. <<<
-  var FORM_ENDPOINT = "";
+  /* ============================================================
+     FORMULARIO DE CONTACTO — envío REAL vía Formspree
+     ------------------------------------------------------------
+     Recorrido del dato (para la defensa):
+     1. El usuario escribe en #formName / #formEmail / #formMsg.
+     2. validateName/Email/Msg comprueban los campos en tiempo real.
+     3. En submit: recogemos los valores, construimos un objeto JS.
+     4. Lo serializamos a JSON (JSON.stringify) y hacemos fetch POST.
+     5. Formspree lo recibe, lo envía a tu correo y responde 200 OK.
+     6. Si r.ok -> reseteamos el form y mostramos el modal "Gracias".
+     7. Si falla -> mostramos error y sugerimos el mailto de respaldo.
+     Campos con "_" (_subject, _replyto) son metadatos de Formspree.
+     ============================================================ */
+  var FORM_ENDPOINT = "https://formspree.io/f/mqpawkyp";
 
   var form = document.getElementById("contactForm");
   var formStatus = document.getElementById("formStatus");
@@ -528,22 +539,15 @@
       var data = {
         name: fName ? fName.value : "",
         email: fEmail ? fEmail.value : "",
-        message: fMsg ? fMsg.value : ""
+        message: fMsg ? fMsg.value : "",
+        // Metadatos Formspree:
+        _subject: "Web personal · Nuevo mensaje de " + (fName ? fName.value : "un visitante"),
+        _replyto: fEmail ? fEmail.value : ""
       };
 
       if (formStatus) {
         formStatus.textContent = "Enviando…";
         formStatus.classList.remove("error");
-      }
-
-      if (!FORM_ENDPOINT) {
-        setTimeout(function () {
-          if (formStatus) formStatus.textContent = "";
-          form.reset();
-          if (charCount) charCount.textContent = "0/" + MAX_MSG;
-          showThanks();
-        }, 700);
-        return;
       }
 
       fetch(FORM_ENDPOINT, {
@@ -555,7 +559,7 @@
         body: JSON.stringify(data)
       })
       .then(function (r) {
-        if (!r.ok) throw new Error("bad");
+        if (!r.ok) throw new Error("Respuesta no válida");
         if (formStatus) formStatus.textContent = "";
         form.reset();
         if (charCount) charCount.textContent = "0/" + MAX_MSG;
@@ -563,7 +567,7 @@
       })
       .catch(function () {
         if (formStatus) {
-          formStatus.textContent = "No se pudo enviar. Inténtalo por correo.";
+          formStatus.textContent = "No se pudo enviar. Inténtalo por correo: boralbbat@alu.edu.gva.es";
           formStatus.classList.add("error");
         }
       });
@@ -630,7 +634,7 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      var col = getComputedStyle(document.documentElement).getPropertyValue("--accent-2").trim() || "#0066ff";
+      var col = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d4ff00";
 
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
