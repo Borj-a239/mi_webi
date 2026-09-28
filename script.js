@@ -40,7 +40,7 @@
   var themeMeta = document.querySelector('meta[name="theme-color"]');
   function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
   function updateThemeColor() {
-    if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#eef1f8" : "#0a0a0f");
+    if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#ffffff" : "#0a0a0f");
   }
   updateThemeColor();
   if (themeToggle) {
@@ -435,7 +435,6 @@
 
   /* ============================================================
      FORMULARIO DE CONTACTO — envío REAL vía Formspree
-     ------------------------------------------------------------
      Recorrido del dato (para la defensa):
      1. El usuario escribe en #formName / #formEmail / #formMsg.
      2. validateName/Email/Msg comprueban los campos en tiempo real.
@@ -540,7 +539,6 @@
         name: fName ? fName.value : "",
         email: fEmail ? fEmail.value : "",
         message: fMsg ? fMsg.value : "",
-        // Metadatos Formspree:
         _subject: "Web personal · Nuevo mensaje de " + (fName ? fName.value : "un visitante"),
         _replyto: fEmail ? fEmail.value : ""
       };
@@ -573,6 +571,60 @@
       });
     });
   }
+
+  /* ===== PROYECTOS (API GitHub) ===== */
+  var projectsGrid = document.getElementById("projectsGrid");
+  var projectsIntro = document.getElementById("projectsIntro");
+  var GITHUB_USER = "Borj-a239";
+
+  function langColor(lang) {
+    var map = { JavaScript:"#f1e05a", HTML:"#e34c26", CSS:"#563d7c", Python:"#3572A5", Java:"#b07219", TypeScript:"#3178c6", Shell:"#89e051", C:"#555555", "C#":"178600", PHP:"#4F5D95", Go:"#00ADD8" };
+    return map[lang] || "#d4ff00";
+  }
+  function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1) + "k" : n; }
+  function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function loadProjects() {
+    if (!projectsGrid) return;
+    projectsGrid.innerHTML = '<div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>';
+    fetch("https://api.github.com/users/" + GITHUB_USER + "/repos?sort=updated&per_page=100", { headers: { Accept: "application/vnd.github+json" } })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (repos) {
+        var list = repos
+          .filter(function (r) { return !r.fork && (r.description || r.language); })
+          .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); });
+        if (!list.length) {
+          projectsGrid.innerHTML = '<p class="proj-empty">Aún no hay repositorios públicos con descripción. <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver GitHub ↗</a></p>';
+          return;
+        }
+        if (projectsIntro) projectsIntro.textContent = list.length + " repositorios públicos mostrados · ordenados por estrellas y actividad.";
+        var html = "";
+        list.slice(0, 12).forEach(function (r) {
+          var desc = escapeHtml(r.description || "Sin descripción todavía.");
+          var lang = r.language || "";
+          var color = lang ? langColor(lang) : "var(--muted)";
+          var url = r.html_url;
+          var name = escapeHtml(r.name);
+          var fecha = new Date(r.pushed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+          html += '<article class="project-card">'
+            + '<div class="pc-head"><h3><a href="' + url + '" target="_blank" rel="noopener">' + name + '</a></h3>'
+            + (lang ? '<span class="pc-lang"><span class="pc-dot" style="background:' + color + '"></span>' + lang + '</span>' : '')
+            + '</div>'
+            + '<p class="pc-desc">' + desc + '</p>'
+            + '<div class="pc-meta">'
+            + '<span class="pc-stat">★ ' + formatNum(r.stargazers_count) + '</span>'
+            + '<span class="pc-stat">⑂ ' + formatNum(r.forks_count) + '</span>'
+            + '<span class="pc-stat">' + fecha + '</span>'
+            + '<a class="pc-link" href="' + url + '" target="_blank" rel="noopener">Ver ↗</a>'
+            + '</div></article>';
+        });
+        projectsGrid.innerHTML = html;
+      })
+      .catch(function () {
+        projectsGrid.innerHTML = '<p class="proj-empty">No se pudo cargar GitHub ahora mismo (límite de la API). <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver mis repos ↗</a></p>';
+      });
+  }
+  loadProjects();
 
   /* ===== CURSOR PERSONALIZADO ===== */
   if (finePointer && !prefersReducedMotion) {
