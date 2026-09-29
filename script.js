@@ -572,10 +572,14 @@
     });
   }
 
-  /* ===== PROYECTOS (API GitHub) ===== */
+  /* ===== PROYECTOS (API GitHub + filtro con estado) ===== */
   var projectsGrid = document.getElementById("projectsGrid");
   var projectsIntro = document.getElementById("projectsIntro");
+  var projectsSearch = document.getElementById("projectsSearch");
+  var projectsLangs = document.getElementById("projectsLangs");
   var GITHUB_USER = "Borj-a239";
+  var allRepos = [];
+  var activeLang = "";
 
   function langColor(lang) {
     var map = { JavaScript:"#f1e05a", HTML:"#e34c26", CSS:"#563d7c", Python:"#3572A5", Java:"#b07219", TypeScript:"#3178c6", Shell:"#89e051", C:"#555555", "C#":"178600", PHP:"#4F5D95", Go:"#00ADD8" };
@@ -584,46 +588,84 @@
   function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1) + "k" : n; }
   function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
+  function cardHTML(r) {
+    var desc = escapeHtml(r.description || "Sin descripción todavía.");
+    var lang = r.language || "";
+    var color = lang ? langColor(lang) : "var(--muted)";
+    var url = r.html_url;
+    var name = escapeHtml(r.name);
+    var fecha = new Date(r.pushed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+    return '<article class="project-card">'
+      + '<div class="pc-head"><h3><a href="' + url + '" target="_blank" rel="noopener">' + name + '</a></h3>'
+      + (lang ? '<span class="pc-lang"><span class="pc-dot" style="background:' + color + '"></span>' + lang + '</span>' : '')
+      + '</div>'
+      + '<p class="pc-desc">' + desc + '</p>'
+      + '<div class="pc-meta">'
+      + '<span class="pc-stat">★ ' + formatNum(r.stargazers_count) + '</span>'
+      + '<span class="pc-stat">⑂ ' + formatNum(r.forks_count) + '</span>'
+      + '<span class="pc-stat">' + fecha + '</span>'
+      + '<a class="pc-link" href="' + url + '" target="_blank" rel="noopener">Ver ↗</a>'
+      + '</div></article>';
+  }
+
+  function renderProjects() {
+    if (!projectsGrid) return;
+    var q = (projectsSearch && projectsSearch.value || "").trim().toLowerCase();
+    var list = allRepos.filter(function (r) {
+      var matchText = !q || (r.name || "").toLowerCase().indexOf(q) >= 0 || (r.description || "").toLowerCase().indexOf(q) >= 0;
+      var matchLang = !activeLang || r.language === activeLang;
+      return matchText && matchLang;
+    });
+    if (!list.length) {
+      projectsGrid.innerHTML = '<p class="proj-empty">Sin resultados con ese filtro. <button class="lang-chip" type="button" data-lang="">Limpiar</button></p>';
+    } else {
+      projectsGrid.innerHTML = list.map(cardHTML).join("");
+    }
+    if (projectsIntro) projectsIntro.textContent = "Mostrando " + list.length + " de " + allRepos.length + " repositorios" + (activeLang ? " · lenguaje: " + activeLang : "") + ".";
+  }
+
+  function buildLangChips() {
+    if (!projectsLangs) return;
+    var counts = {};
+    allRepos.forEach(function (r) { if (r.language) counts[r.language] = (counts[r.language] || 0) + 1; });
+    var langs = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    var html = '<button class="lang-chip active" type="button" data-lang="" aria-pressed="true">Todos</button>';
+    langs.forEach(function (l) {
+      html += '<button class="lang-chip" type="button" data-lang="' + escapeHtml(l) + '" aria-pressed="false"><span class="chip-dot" style="background:' + langColor(l) + '"></span>' + escapeHtml(l) + ' (' + counts[l] + ')</button>';
+    });
+    projectsLangs.innerHTML = html;
+  }
+
   function loadProjects() {
     if (!projectsGrid) return;
     projectsGrid.innerHTML = '<div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>';
     fetch("https://api.github.com/users/" + GITHUB_USER + "/repos?sort=updated&per_page=100", { headers: { Accept: "application/vnd.github+json" } })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (repos) {
-        var list = repos
+        allRepos = repos
           .filter(function (r) { return !r.fork && (r.description || r.language); })
-          .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); });
-        if (!list.length) {
-          projectsGrid.innerHTML = '<p class="proj-empty">Aún no hay repositorios públicos con descripción. <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver GitHub ↗</a></p>';
-          return;
-        }
-        if (projectsIntro) projectsIntro.textContent = list.length + " repositorios públicos mostrados · ordenados por estrellas y actividad.";
-        var html = "";
-        list.slice(0, 12).forEach(function (r) {
-          var desc = escapeHtml(r.description || "Sin descripción todavía.");
-          var lang = r.language || "";
-          var color = lang ? langColor(lang) : "var(--muted)";
-          var url = r.html_url;
-          var name = escapeHtml(r.name);
-          var fecha = new Date(r.pushed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
-          html += '<article class="project-card">'
-            + '<div class="pc-head"><h3><a href="' + url + '" target="_blank" rel="noopener">' + name + '</a></h3>'
-            + (lang ? '<span class="pc-lang"><span class="pc-dot" style="background:' + color + '"></span>' + lang + '</span>' : '')
-            + '</div>'
-            + '<p class="pc-desc">' + desc + '</p>'
-            + '<div class="pc-meta">'
-            + '<span class="pc-stat">★ ' + formatNum(r.stargazers_count) + '</span>'
-            + '<span class="pc-stat">⑂ ' + formatNum(r.forks_count) + '</span>'
-            + '<span class="pc-stat">' + fecha + '</span>'
-            + '<a class="pc-link" href="' + url + '" target="_blank" rel="noopener">Ver ↗</a>'
-            + '</div></article>';
-        });
-        projectsGrid.innerHTML = html;
+          .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); })
+          .slice(0, 24);
+        buildLangChips();
+        renderProjects();
       })
       .catch(function () {
         projectsGrid.innerHTML = '<p class="proj-empty">No se pudo cargar GitHub ahora mismo (límite de la API). <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver mis repos ↗</a></p>';
       });
   }
+
+  if (projectsSearch) projectsSearch.addEventListener("input", renderProjects);
+  if (projectsLangs) projectsLangs.addEventListener("click", function (e) {
+    var chip = e.target.closest(".lang-chip");
+    if (!chip) return;
+    activeLang = chip.getAttribute("data-lang") || "";
+    Array.prototype.forEach.call(projectsLangs.querySelectorAll(".lang-chip"), function (c) {
+      var on = (c.getAttribute("data-lang") || "") === activeLang;
+      c.classList.toggle("active", on);
+      c.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    renderProjects();
+  });
   loadProjects();
 
   /* ===== CURSOR PERSONALIZADO ===== */

@@ -236,8 +236,15 @@
         <h2 id="proyectos-title">Proyectos</h2>
         <p class="section-intro">
           Todo lo que voy subiendo a <a href="https://github.com/Borj-a239" target="_blank" rel="noopener">mi GitHub</a>,
-          cargado en vivo desde la API pública de GitHub (sin backend). Ordenados por estrellas y última actividad.
+          cargado en vivo desde la API pública (sin backend). Busca por nombre o descripción y filtra por lenguaje.
         </p>
+        <div class="projects-tools">
+          <label class="proj-search-wrap">
+            <span class="proj-search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="projectsSearch" placeholder="Buscar repos…" aria-label="Buscar proyectos por nombre o descripción" />
+          </label>
+          <div class="proj-lang-chips" id="projectsLangs" role="group" aria-label="Filtrar por lenguaje"></div>
+        </div>
         <p class="projects-intro" id="projectsIntro" aria-live="polite"></p>
         <div class="projects-grid" id="projectsGrid">
           <div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>
@@ -295,7 +302,7 @@
           </article>
           <article class="card">
             <h3>Aprendido</h3>
-            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, y consumo de una <code>API REST</code> (GitHub) para la sección de proyectos.</p>
+            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, y consumo de una <code>API REST</code> (GitHub) con filtro en memoria para la sección de proyectos.</p>
           </article>
         </div>
 
@@ -307,6 +314,7 @@
           <li>Validación del formulario en tiempo real</li>
           <li>Envío real por correo vía Formspree</li>
           <li>Sección de proyectos cargada en vivo desde la API de GitHub</li>
+          <li>Buscador y filtro por lenguaje de proyectos (estado en memoria)</li>
           <li>Adaptación a móvil (incluido menú inferior)</li>
         </ul>
 
@@ -417,8 +425,9 @@
         </div>
 
         <details class="changelog">
-          <summary>Changelog · v1.7</summary>
+          <summary>Changelog · v1.8</summary>
           <ul class="changelog-list">
+            <li><b>v1.8 — 2026</b>Buscador y filtro por lenguaje de proyectos (estado en memoria, sin recargar la API).</li>
             <li><b>v1.7 — 2026</b>Sección "Proyectos" en vivo vía API de GitHub (branca + PR), README técnico y 2 ADRs.</li>
             <li><b>v1.6 — 2026</b>Correcciones de estructura, timeline, accesibilidad y comportamiento del easter egg.</li>
             <li><b>v1.5 — 2026</b>Rediseño de la sección de contacto: tarjetas, iconos y panel destacado.</li>
