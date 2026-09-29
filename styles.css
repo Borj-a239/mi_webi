@@ -275,6 +275,20 @@ kbd {
 .likes li:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: var(--surface-hover); transform: translateY(-4px); }
 .likes li::before { content: "◆ "; color: var(--accent); }
 
+/* ===== MEDIOS EN "ME GUSTA" (vídeo/audio por categoría) ===== */
+.likes li video,
+.likes li audio {
+  display: block;
+  width: 100%;
+  max-width: min(360px, 100%);
+  margin: 0.9rem auto 0;          /* arriba y centrado horizontal */
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px var(--shadow);
+}
+.likes li video { background: #000; }
+.likes li audio { background: var(--surface); }
+
 /* ===== BADGES DE TECNOLOGÍAS ===== */
 .tech-stack { margin-top: 2.25rem; }
 .tech-stack h3 { margin: 0 0 1rem; color: var(--text); font-size: 1.2rem; }
