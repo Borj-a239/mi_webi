@@ -248,7 +248,10 @@
               <p class="feat-res"><strong>Resultado:</strong> prototipo jugable de principio a fin, servido local.</p>
             </div>
             <div class="feat-media">
-              <iframe src="juego/index.html" title="Juego en GDevelop" loading="lazy" allow="autoplay; fullscreen"></iframe>
+              <button class="game-facade" type="button" data-src="juego/index.html" aria-label="Cargar y jugar el juego de GDevelop">
+                <span class="gf-play" aria-hidden="true">▶</span>
+                <span class="gf-text">Pulsa para jugar</span>
+              </button>
             </div>
           </article>
         </div>
@@ -346,7 +349,7 @@
           <li>Sección de proyectos cargada en vivo desde la API de GitHub</li>
           <li>Buscador y filtro por lenguaje de proyectos (estado en memoria)</li>
           <li>Vídeo y audio embebidos por categoría en "Me gusta"</li>
-          <li>Juego de GDevelop autoalojado (export web, sin backend)</li>
+          <li>Juego de GDevelop autoalojado con fachada click-to-play (carga bajo demanda)</li>
           <li>Adaptación a móvil (incluido menú inferior)</li>
         </ul>
 
@@ -459,7 +462,7 @@
         <details class="changelog">
           <summary>Changelog · v2.0</summary>
           <ul class="changelog-list">
-            <li><b>v2.0 — 2026</b>Juego de GDevelop autoalojado (export web) y caso problema→solución→resultado en Proyectos; vídeo y audio embebidos y alineados en "Me gusta".</li>
+            <li><b>v2.0 — 2026</b>Juego de GDevelop autoalojado con fachada click-to-play (carga bajo demanda) y caso problema→solución→resultado en Proyectos; vídeo y audio embebidos y alineados en "Me gusta".</li>
             <li><b>v1.9 — 2026</b>Vídeo y audio embebidos por categoría en "Me gusta" (tráiler de Halo, montaje de PC y himno del Atleti).</li>
             <li><b>v1.8 — 2026</b>Buscador y filtro por lenguaje de proyectos (estado en memoria, sin recargar la API).</li>
             <li><b>v1.7 — 2026</b>Sección "Proyectos" en vivo vía API de GitHub (branca + PR), README técnico y 2 ADRs.</li>

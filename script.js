@@ -770,4 +770,20 @@
       if (!document.hidden) draw();
     });
   }
+
+  /* ===== FACADE DEL JUEGO (click-to-play) ===== */
+  var facades = document.querySelectorAll(".game-facade");
+  Array.prototype.forEach.call(facades, function (btn) {
+    btn.addEventListener("click", function () {
+      var src = btn.getAttribute("data-src");
+      if (!src) return;
+      var frame = document.createElement("iframe");
+      frame.src = src;
+      frame.title = "Juego en GDevelop";
+      frame.setAttribute("allow", "autoplay; fullscreen; scripts");
+      frame.style.cssText = "display:block;width:100%;aspect-ratio:16/10;border:0;border-radius:12px";
+      btn.parentNode.replaceChild(frame, btn);
+      try { frame.focus(); } catch (e) {}
+    });
+  });
 })();

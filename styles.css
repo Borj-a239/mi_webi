@@ -306,6 +306,19 @@ kbd {
 .feat-media iframe { display: block; width: 100%; aspect-ratio: 16 / 10; border: 0; }
 .feat-media img { display: block; width: 100%; height: auto; }
 
+/* ===== FACADE DEL JUEGO (click-to-play) ===== */
+.game-facade {
+  display: grid; place-items: center; gap: .4rem;
+  width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 12px; cursor: pointer;
+  background: radial-gradient(circle at center, var(--surface-hover), var(--bg-2));
+  color: var(--text); font-family: var(--font-display); font-weight: 700;
+  transition: background .25s ease, transform .25s ease, color .25s ease;
+}
+.game-facade:hover, .game-facade:focus-visible { background: var(--accent); color: var(--on-accent); transform: translateY(-2px); }
+.gf-play { font-size: 2.4rem; line-height: 1; }
+.gf-text { font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; }
+
 /* ===== BADGES DE TECNOLOGÍAS ===== */
 .tech-stack { margin-top: 2.25rem; }
 .tech-stack h3 { margin: 0 0 1rem; color: var(--text); font-size: 1.2rem; }
