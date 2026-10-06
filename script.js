@@ -634,6 +634,7 @@
   PROVINCIAS.forEach(function (p) { provMap[p.n] = p; });
   var provSelect = document.getElementById('provSelect');
   var munSelect = document.getElementById('munSelect');
+  var munInput = document.getElementById('munInput');
   var weatherBody = document.getElementById('weatherBody');
   var currentProv = 'Valencia';
 
@@ -683,24 +684,23 @@
   function loadMunicipios(lat, lon, provName) {
     if (!munSelect) return;
     munSelect.disabled = true;
-    munSelect.innerHTML = '<option value="">Cargando municipios…</option>';
-    var dLat = 1.4, dLon = 1.9;
-    var vb = (lon - dLon) + ',' + (lat + dLat) + ',' + (lon + dLon) + ',' + (lat - dLat);
-    var url = 'https://nominatim.openstreetmap.org/search?viewbox=' + encodeURIComponent(vb) +
-      '&bounded=1&format=jsonv2&limit=100&featuretype=settlement&addressdetails=1&accept-language=es&countrycodes=es';
-    fetch(url, { headers: { Accept: 'application/json' } })
+    munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(provName) + ')</option>';
+
+    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(provName) + '&count=8&language=es&format=json&countrycode=ES';
+    fetch(url)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (arr) {
+      .then(function (data) {
         var seen = {}, list = [];
-        (arr || []).forEach(function (x) {
-          var a = x.address || {};
-          var name = a.municipality || a.city || a.town || a.village || a.city_district || a.suburb;
-          if (!name) return;
+        (data.results || []).forEach(function (item) {
+          var name = item.name || item.admin1;
+          if (!name || name === provName) return;
           var key = norm(name);
-          if (seen[key]) return; seen[key] = 1;
-          list.push({ name: name, lat: x.lat, lon: x.lon });
+          if (seen[key]) return;
+          seen[key] = 1;
+          list.push({ name: name, lat: item.latitude, lon: item.longitude });
         });
         list.sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
+
         var opts = '<option value="">Capital (' + escapeHtml(provName) + ')</option>' +
           list.map(function (m) {
             return '<option value="' + m.lat + '|' + m.lon + '|' + escapeHtml(m.name) + '">' + escapeHtml(m.name) + '</option>';
@@ -711,6 +711,29 @@
       .catch(function () {
         munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(provName) + ')</option>';
         munSelect.disabled = false;
+      });
+  }
+
+  function searchCityWeather(query) {
+    if (!query || query.trim().length < 2) return;
+    var q = query.trim();
+    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=5&language=es&format=json&countrycode=ES';
+    fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) {
+        var results = (data.results || []).filter(function (item) {
+          return item && item.latitude != null && item.longitude != null && item.name;
+        });
+        if (!results.length) {
+          weatherBody.innerHTML = '<p class="live-empty">No encontré ese pueblo o ciudad.</p>';
+          return;
+        }
+        var item = results[0];
+        var label = item.name + (item.admin1 ? ', ' + item.admin1 : '');
+        loadCoords(item.latitude, item.longitude, item.name, item.admin1 || currentProv);
+      })
+      .catch(function () {
+        weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa localidad.</p>';
       });
   }
 
@@ -732,6 +755,29 @@
       if (!v) { loadCapital(); return; }
       var parts = v.split('|');
       loadCoords(parts[0], parts[1], parts[2], currentProv);
+    });
+  }
+  if (munInput) {
+    munInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        searchCityWeather(munInput.value);
+      }
+    });
+    munInput.addEventListener('input', function () {
+      if (!munInput.value || munInput.value.trim().length < 2) return;
+      var q = munInput.value.trim();
+      var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=5&language=es&format=json&countrycode=ES';
+      fetch(url)
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) {
+          var options = (data.results || []).slice(0, 5).map(function (item) {
+            return '<option value="' + (item.name || '') + '"></option>';
+          }).join('');
+          if (!munSelect) return;
+          munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(currentProv) + ')</option>' + options;
+        })
+        .catch(function () {});
     });
   }
   loadCapital();
