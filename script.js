@@ -239,7 +239,6 @@
   var konami = document.getElementById("konami");
   var confetti = document.getElementById("confetti");
   var konamiClose = document.getElementById("konamiClose");
-
   function closeKonami() {
     if (konami) {
       konami.classList.remove("show");
@@ -608,13 +607,10 @@
 
   /* ============================================================
      WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
-     - Open-Meteo forecast + geocoding → tiempo por provincia/municipio
-     - Hacker News (Firebase) → top stories
-     - jogruber → heatmap de actividad GitHub
      ============================================================ */
   function norm(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 
-  /* --- 1) TIEMPO (Open-Meteo) --- */
+  /* --- 1) TIEMPO (Open-Meteo) con cascada provincia → municipio --- */
   var PROVINCIAS = [
     {n:'Álava',la:42.85,lo:-2.67},{n:'Albacete',la:39.01,lo:-1.86},{n:'Alicante',la:38.34,lo:-0.48},
     {n:'Almería',la:36.83,lo:-2.46},{n:'Asturias',la:43.36,lo:-5.85},{n:'Ávila',la:40.66,lo:-4.69},
@@ -637,9 +633,8 @@
   var provMap = {};
   PROVINCIAS.forEach(function (p) { provMap[p.n] = p; });
   var provSelect = document.getElementById('provSelect');
+  var munSelect = document.getElementById('munSelect');
   var weatherBody = document.getElementById('weatherBody');
-  var cityInput = document.getElementById('cityInput');
-  var citySuggest = document.getElementById('citySuggest');
   var currentProv = 'Valencia';
 
   function weatherInfo(code) {
@@ -685,61 +680,40 @@
     if (p) loadCoords(p.la, p.lo, p.n, 'Capital');
   }
 
-  /* geocoding con autocompletado (Open-Meteo, sin clave) */
-  var cityTimer = null, sugIndex = -1, sugItems = [];
-  function hideSug() { if (citySuggest) { citySuggest.classList.remove('show'); citySuggest.innerHTML = ''; } sugItems = []; sugIndex = -1; }
-  function paintSug() { sugItems.forEach(function (li, i) { li.classList.toggle('active', i === sugIndex); }); }
-  function fetchCity(q) {
-    if (!q || q.length < 2) { hideSug(); return; }
-    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=20&language=es&format=json';
-    fetch(url)
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        var res = (d.results || []).filter(function (x) {
-          return x.country_code === 'ES' && (norm(x.admin2) === norm(currentProv) || norm(x.admin1) === norm(currentProv));
+  function loadMunicipios(lat, lon, provName) {
+    if (!munSelect) return;
+    munSelect.disabled = true;
+    munSelect.innerHTML = '<option value="">Cargando municipios…</option>';
+    var dLat = 1.4, dLon = 1.9;
+    var vb = (lon - dLon) + ',' + (lat + dLat) + ',' + (lon + dLon) + ',' + (lat - dLat);
+    var url = 'https://nominatim.openstreetmap.org/search?viewbox=' + encodeURIComponent(vb) +
+      '&bounded=1&format=jsonv2&limit=100&featuretype=settlement&addressdetails=1&accept-language=es&countrycodes=es';
+    fetch(url, { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (arr) {
+        var seen = {}, list = [];
+        (arr || []).forEach(function (x) {
+          var a = x.address || {};
+          var name = a.municipality || a.city || a.town || a.village || a.city_district || a.suburb;
+          if (!name) return;
+          var key = norm(name);
+          if (seen[key]) return; seen[key] = 1;
+          list.push({ name: name, lat: x.lat, lon: x.lon });
         });
-        var seen = {}, out = [];
-        res.forEach(function (x) { var k = x.name + '|' + (x.admin2 || ''); if (!seen[k]) { seen[k] = 1; out.push(x); } });
-        out = out.slice(0, 8);
-        if (!out.length) {
-          citySuggest.innerHTML = '<li class="city-none">Sin resultados en ' + escapeHtml(currentProv) + '</li>';
-          citySuggest.classList.add('show'); sugItems = []; return;
-        }
-        citySuggest.innerHTML = out.map(function (x) {
-          return '<li role="option" data-lat="' + x.latitude + '" data-lon="' + x.longitude + '" data-name="' + escapeHtml(x.name) + '" data-sub="' + escapeHtml(x.admin2 || currentProv) + '">' +
-            '<span>' + escapeHtml(x.name) + '</span><small>' + (x.admin2 ? escapeHtml(x.admin2) : '—') + '</small></li>';
-        }).join('');
-        citySuggest.classList.add('show');
-        sugItems = Array.prototype.slice.call(citySuggest.querySelectorAll('li[role="option"]'));
-        sugIndex = -1;
+        list.sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
+        var opts = '<option value="">Capital (' + escapeHtml(provName) + ')</option>' +
+          list.map(function (m) {
+            return '<option value="' + m.lat + '|' + m.lon + '|' + escapeHtml(m.name) + '">' + escapeHtml(m.name) + '</option>';
+          }).join('');
+        munSelect.innerHTML = opts;
+        munSelect.disabled = false;
       })
-      .catch(hideSug);
+      .catch(function () {
+        munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(provName) + ')</option>';
+        munSelect.disabled = false;
+      });
   }
-  if (cityInput) {
-    cityInput.addEventListener('input', function () {
-      clearTimeout(cityTimer);
-      var q = cityInput.value.trim();
-      cityTimer = setTimeout(function () { fetchCity(q); }, 350);
-    });
-    cityInput.addEventListener('focus', function () { var q = cityInput.value.trim(); if (q.length >= 2) fetchCity(q); });
-    cityInput.addEventListener('blur', function () { setTimeout(hideSug, 150); });
-    cityInput.addEventListener('keydown', function (e) {
-      if (!sugItems.length) { if (e.key === 'Enter') { var q = cityInput.value.trim(); if (q.length >= 2) fetchCity(q); } return; }
-      if (e.key === 'ArrowDown') { e.preventDefault(); sugIndex = (sugIndex + 1) % sugItems.length; paintSug(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); sugIndex = (sugIndex - 1 + sugItems.length) % sugItems.length; paintSug(); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (sugIndex >= 0) sugItems[sugIndex].click(); }
-      else if (e.key === 'Escape') hideSug();
-    });
-  }
-  if (citySuggest) {
-    citySuggest.addEventListener('click', function (e) {
-      var li = e.target.closest('li[role="option"]');
-      if (!li) return;
-      cityInput.value = li.getAttribute('data-name');
-      loadCoords(li.getAttribute('data-lat'), li.getAttribute('data-lon'), li.getAttribute('data-name'), li.getAttribute('data-sub'));
-      hideSug();
-    });
-  }
+
   if (provSelect) {
     var sorted = PROVINCIAS.slice().sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
     provSelect.innerHTML = sorted.map(function (p) {
@@ -747,13 +721,21 @@
     }).join('');
     provSelect.addEventListener('change', function () {
       currentProv = provSelect.value;
-      if (cityInput) { cityInput.value = ''; cityInput.placeholder = 'Buscar municipio en ' + currentProv + '…'; }
-      hideSug();
+      var p = provMap[currentProv];
       loadCapital();
+      if (p) loadMunicipios(p.la, p.lo, currentProv);
     });
-    if (cityInput) cityInput.placeholder = 'Buscar municipio en ' + currentProv + '…';
+  }
+  if (munSelect) {
+    munSelect.addEventListener('change', function () {
+      var v = munSelect.value;
+      if (!v) { loadCapital(); return; }
+      var parts = v.split('|');
+      loadCoords(parts[0], parts[1], parts[2], currentProv);
+    });
   }
   loadCapital();
+  (function () { var p = provMap[currentProv]; if (p) loadMunicipios(p.la, p.lo, currentProv); })();
 
   /* --- 2) HACKER NEWS (Firebase) --- */
   var hnList = document.getElementById('hnList');
@@ -782,31 +764,120 @@
   }
   loadHN();
 
-  /* --- 3) HEATMAP GITHUB (jogruber) --- */
+  /* --- 3) HEATMAP GITHUB (jogruber interactivo + imagen real rshah de respaldo) --- */
   var ghHeat = document.getElementById('ghHeat');
   var ghSummary = document.getElementById('ghSummary');
   var ghLegend = document.getElementById('ghLegend');
-  function loadHeat() {
+  var GH_CACHE_KEY = 'gh_heat_cache_v5';
+  var GH_CACHE_TTL = 10 * 60 * 1000;
+
+  function ghLevel(n) { return n === 0 ? 0 : n < 3 ? 1 : n < 6 ? 2 : n < 10 ? 3 : 4; }
+
+  function ghFromArr(a) {
+    if (!Array.isArray(a) || !a.length) return null;
+    var sum = 0;
+    var out = a.map(function (c) {
+      var cnt = c.count != null ? c.count : (c.value != null ? c.value : 0);
+      sum += cnt;
+      return { date: c.date || '', count: cnt, level: c.level != null ? c.level : ghLevel(cnt) };
+    });
+    return sum > 0 ? out : null;
+  }
+  function ghFromObj(map) {
+    if (!map || typeof map !== 'object' || Array.isArray(map) || !Object.keys(map).length) return null;
+    var end = new Date(), arr = [], sum = 0;
+    for (var i = 364; i >= 0; i--) {
+      var dd = new Date(end); dd.setDate(end.getDate() - i);
+      var iso = dd.toISOString().slice(0, 10);
+      var raw = map[iso];
+      var cnt = raw == null ? 0 : (typeof raw === 'object' ? (raw.count != null ? raw.count : (raw.value || 0)) : raw);
+      sum += cnt;
+      arr.push({ date: iso, count: cnt, level: ghLevel(cnt) });
+    }
+    return sum > 0 ? arr : null;
+  }
+  function ghPick(d) {
+    return ghFromArr(d.days) || ghFromArr(d.lastYear) || ghFromObj(d.contributions);
+  }
+
+  function ghRender(days) {
+    ghHeat.style.display = 'grid';
+    var offset = days.length ? new Date(days[0].date).getDay() : 0;
+    var pad = [];
+    for (var k = 0; k < offset; k++) pad.push({ empty: true });
+    days = pad.concat(days);
+    var total = 0, best = 0;
+    days.forEach(function (c) { if (!c.empty) { total += c.count; if (c.count > best) best = c.count; } });
+
+    ghHeat.innerHTML = days.map(function (c) {
+      if (c.empty) return '<span class="gh-cell gh-empty"></span>';
+      return '<span class="gh-cell" style="background:var(--gh' + c.level + ')" title="' + c.date + ': ' + c.count + ' contribuciones"></span>';
+    }).join('');
+
+    if (ghSummary) ghSummary.innerHTML =
+      '<div class="gh-stat"><strong>' + total + '</strong><span>commits · 1 año</span></div>' +
+      '<div class="gh-stat"><strong>' + best + '</strong><span>mejor día</span></div>';
+
+    if (ghLegend) ghLegend.innerHTML =
+      '<span>Menos</span><span class="gh-swatches">' +
+      [0,1,2,3,4].map(function(l){ return '<i style="background:var(--gh'+l+')"></i>'; }).join('') +
+      '</span><span>Más</span>';
+  }
+
+  function ghFallbackImage(total) {
+    ghHeat.style.display = 'block';
+    var col = (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#39d353').replace('#', '');
+    ghHeat.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = 'https://ghchart.rshah.org/' + col + '/Borj-a239';
+    img.alt = 'Mapa de contribuciones de GitHub de Borj-a239';
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;max-width:720px;height:auto;display:block;margin:0 auto;border-radius:8px;background:var(--surface-2)';
+    img.onerror = function () {
+      ghHeat.innerHTML = '<p class="live-empty">No se pudo cargar el gráfico. <a href="https://github.com/Borj-a239" target="_blank" rel="noopener">Ver en GitHub ↗</a></p>';
+    };
+    ghHeat.appendChild(img);
+    if (ghSummary) ghSummary.innerHTML =
+      '<div class="gh-stat"><strong>' + (total != null ? total : '—') + '</strong><span>commits · 1 año</span></div>';
+    if (ghLegend) ghLegend.innerHTML =
+      '<span>Menos</span><span class="gh-swatches">' +
+      [1,2,3,4].map(function(l){ return '<i style="background:var(--gh'+l+')"></i>'; }).join('') +
+      '</span><span>Más</span>';
+  }
+
+  function loadHeat(force) {
     if (!ghHeat) return;
+    if (!force) {
+      try {
+        var c = JSON.parse(localStorage.getItem(GH_CACHE_KEY));
+        if (c && c.days && (Date.now() - c.t) < GH_CACHE_TTL) { ghRender(c.days); return; }
+      } catch (e) {}
+    }
+    ghHeat.style.display = 'grid';
     ghHeat.innerHTML = '<div class="live-skeleton"></div>';
-    fetch('https://github-contributions-api.jogruber.de/v4/Borj-a239?y=last')
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) {
-        var days = (d.lastYear || []).slice(-182); // últimas 26 semanas
-        ghHeat.innerHTML = days.map(function (c) {
-          return '<span class="gh-cell" style="background:var(--gh' + (c.level || 0) + ')" title="' + c.date + ': ' + c.count + '"></span>';
-        }).join('');
-        var tot = (d.total && d.total.lastYear) || 0;
-        var best = (d.bestDay && d.bestDay.count) || 0;
-        if (ghSummary) ghSummary.innerHTML =
-          '<div class="gh-stat"><strong>' + tot + '</strong><span>commits · 1 año</span></div>' +
-          '<div class="gh-stat"><strong>' + best + '</strong><span>mejor día</span></div>';
-        if (ghLegend) ghLegend.innerHTML =
-          '<span>Menos</span><span class="gh-swatches">' +
-          [0,1,2,3,4].map(function (l) { return '<i style="background:var(--gh' + l + ')"></i>'; }).join('') +
-          '</span><span>Más</span>';
-      })
-      .catch(function () { ghHeat.innerHTML = '<p class="live-empty">No se pudo cargar la actividad de GitHub.</p>'; });
+    var lastTotal = null;
+    var urls = [
+      'https://github-contributions-api.jogruber.de/v4/Borj-a239?y=last',
+      'https://github-contributions-api.jogruber.de/v4/Borj-a239?y=2025',
+      'https://github-contributions-api.jogruber.de/v4/Borj-a239?y=2026'
+    ];
+    (function tryNext(i) {
+      if (i >= urls.length) { ghFallbackImage(lastTotal); return; }
+      fetch(urls[i])
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (d) {
+          var t = (d.total && (d.total.lastYear != null ? d.total.lastYear : d.total.allTime));
+          if (t != null) lastTotal = t;
+          var days = ghPick(d);
+          if (days) {
+            try { localStorage.setItem(GH_CACHE_KEY, JSON.stringify({ t: Date.now(), days: days })); } catch (e) {}
+            ghRender(days);
+          } else {
+            tryNext(i + 1);
+          }
+        })
+        .catch(function () { tryNext(i + 1); });
+    })(0);
   }
   loadHeat();
 
