@@ -781,9 +781,37 @@
       frame.src = src;
       frame.title = "Juego en GDevelop";
       frame.setAttribute("allow", "autoplay; fullscreen; scripts");
+      frame.setAttribute("tabindex", "0");
       frame.style.cssText = "display:block;width:100%;aspect-ratio:16/10;border:0;border-radius:12px";
+
+      // Enfocar el CANVAS interno (no solo la ventana): así el teclado
+      // (Espacio = disparar) entra en el juego y la página no hace scroll.
+      function focusGame() {
+        try {
+          var d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+          if (!d) return;
+          var c = d.querySelector("canvas");
+          if (c) { c.setAttribute("tabindex", "0"); c.focus(); return; }
+          if (frame.contentWindow) frame.contentWindow.focus();
+        } catch (e) {}
+      }
+
+      frame.addEventListener("load", function () {
+        focusGame();
+        setTimeout(focusGame, 150);   // reintentos: el canvas tarda un tick
+        setTimeout(focusGame, 400);
+        // Red: si el Espacio llegase al iframe, no lo dejamos scrollear
+        try {
+          var d2 = frame.contentDocument || frame.contentWindow.document;
+          d2.addEventListener("keydown", function (e) {
+            if (e.code === "Space") e.preventDefault();
+          });
+        } catch (e) {}
+      });
+      frame.addEventListener("click", focusGame);   // re-enfocar al pulsar dentro
+
       btn.parentNode.replaceChild(frame, btn);
-      try { frame.focus(); } catch (e) {}
+      setTimeout(focusGame, 300);
     });
   });
 })();
