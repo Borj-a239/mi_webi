@@ -1,11 +1,10 @@
-// script.js
 (function () {
   "use strict";
 
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var finePointer = window.matchMedia("(pointer: fine)").matches;
 
-  /* ===== FOCUS TRAP (para los modales) ===== */
+  /* ===== FOCUS TRAP ===== */
   var _trap = { modal: null, last: null, handler: null };
   function focusables(el) {
     return Array.prototype.filter.call(
@@ -121,7 +120,7 @@
     setToggleAria(isDesktop());
   });
 
-  /* ===== SCROLL SPY (sidebar + bottom nav) ===== */
+  /* ===== SCROLL SPY ===== */
   var navLinks = document.querySelectorAll(".nav-link");
   var bottomLinks = document.querySelectorAll(".bottom-link");
   function setActive(id) {
@@ -319,13 +318,11 @@
       if (e.key === "ArrowRight") lbGo(lbIndex + 1);
       return;
     }
-
     if (e.key === "Escape") {
       if (thanks && thanks.classList.contains("show")) hideThanks();
       else if (konami && konami.classList.contains("show")) closeKonami();
       else closeSidebar();
     }
-
     if (!isTypingTarget(e.target) && !isModalOpen() && (e.key === "t" || e.key === "T") && themeToggle) {
       themeToggle.click();
     }
@@ -334,15 +331,10 @@
   /* ===== KONAMI KEYBOARD ===== */
   document.addEventListener("keydown", function (e) {
     if (isTypingTarget(e.target) || isModalOpen()) return;
-
     var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-
     if (key === konamiSeq[kIdx]) {
       kIdx++;
-      if (kIdx === konamiSeq.length) {
-        launchKonami();
-        kIdx = 0;
-      }
+      if (kIdx === konamiSeq.length) { launchKonami(); kIdx = 0; }
     } else {
       kIdx = (key === konamiSeq[0]) ? 1 : 0;
     }
@@ -433,23 +425,10 @@
     });
   }
 
-  /* ============================================================
-     FORMULARIO DE CONTACTO — envío REAL vía Formspree
-     Recorrido del dato (para la defensa):
-     1. El usuario escribe en #formName / #formEmail / #formMsg.
-     2. validateName/Email/Msg comprueban los campos en tiempo real.
-     3. En submit: recogemos los valores, construimos un objeto JS.
-     4. Lo serializamos a JSON (JSON.stringify) y hacemos fetch POST.
-     5. Formspree lo recibe, lo envía a tu correo y responde 200 OK.
-     6. Si r.ok -> reseteamos el form y mostramos el modal "Gracias".
-     7. Si falla -> mostramos error y sugerimos el mailto de respaldo.
-     Campos con "_" (_subject, _replyto) son metadatos de Formspree.
-     ============================================================ */
+  /* ===== FORMULARIO DE CONTACTO (Formspree) ===== */
   var FORM_ENDPOINT = "https://formspree.io/f/mqpawkyp";
-
   var form = document.getElementById("contactForm");
   var formStatus = document.getElementById("formStatus");
-
   var fName = document.getElementById("formName");
   var fEmail = document.getElementById("formEmail");
   var fMsg = document.getElementById("formMsg");
@@ -474,11 +453,7 @@
   function validateName() {
     if (!fName) return true;
     var v = fName.value.trim();
-    if (v === "") {
-      fName.classList.remove("invalid");
-      if (errName) errName.textContent = "";
-      return false;
-    }
+    if (v === "") { fName.classList.remove("invalid"); if (errName) errName.textContent = ""; return false; }
     mark(fName, errName, v.length >= 2, "Introduce al menos 2 caracteres");
     return v.length >= 2;
   }
@@ -486,11 +461,7 @@
   function validateEmail() {
     if (!fEmail) return true;
     var v = fEmail.value.trim();
-    if (v === "") {
-      fEmail.classList.remove("invalid");
-      if (errEmail) errEmail.textContent = "";
-      return false;
-    }
+    if (v === "") { fEmail.classList.remove("invalid"); if (errEmail) errEmail.textContent = ""; return false; }
     mark(fEmail, errEmail, emailRe.test(v), "Formato de email no válido");
     return emailRe.test(v);
   }
@@ -502,11 +473,7 @@
       charCount.textContent = n + "/" + MAX_MSG;
       charCount.classList.toggle("warn", n > MAX_MSG * 0.9);
     }
-    if (n === 0) {
-      fMsg.classList.remove("invalid");
-      if (errMsg) errMsg.textContent = "";
-      return false;
-    }
+    if (n === 0) { fMsg.classList.remove("invalid"); if (errMsg) errMsg.textContent = ""; return false; }
     mark(fMsg, errMsg, n >= 10, "El mensaje es muy corto (mín. 10)");
     return n >= 10;
   }
@@ -518,23 +485,19 @@
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-
       var okName = validateName();
       var okEmail = validateEmail();
       var okMsg = validateMsg();
-
       if (!okName || !okEmail || !okMsg) {
         if (!okName && fName && fName.value.trim() === "") mark(fName, errName, false, "Este campo es obligatorio");
         if (!okEmail && fEmail && fEmail.value.trim() === "") mark(fEmail, errEmail, false, "Este campo es obligatorio");
         if (!okMsg && fMsg && fMsg.value.length === 0) mark(fMsg, errMsg, false, "Este campo es obligatorio");
-
         if (formStatus) {
           formStatus.textContent = "Revisa los campos marcados en rojo.";
           formStatus.classList.add("error");
         }
         return;
       }
-
       var data = {
         name: fName ? fName.value : "",
         email: fEmail ? fEmail.value : "",
@@ -542,18 +505,10 @@
         _subject: "Web personal · Nuevo mensaje de " + (fName ? fName.value : "un visitante"),
         _replyto: fEmail ? fEmail.value : ""
       };
-
-      if (formStatus) {
-        formStatus.textContent = "Enviando…";
-        formStatus.classList.remove("error");
-      }
-
+      if (formStatus) { formStatus.textContent = "Enviando…"; formStatus.classList.remove("error"); }
       fetch(FORM_ENDPOINT, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(data)
       })
       .then(function (r) {
@@ -572,7 +527,7 @@
     });
   }
 
-  /* ===== PROYECTOS (API GitHub + filtro con estado) ===== */
+  /* ===== PROYECTOS (API GitHub) ===== */
   var projectsGrid = document.getElementById("projectsGrid");
   var projectsIntro = document.getElementById("projectsIntro");
   var projectsSearch = document.getElementById("projectsSearch");
@@ -668,32 +623,161 @@
   });
   loadProjects();
 
+  /* ============================================================
+     NUEVO: WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
+     - Open-Meteo  → tiempo por provincia (selector)
+     - Free to Play→ juegos gratis del momento
+     - Hacker News → top stories (Firebase)
+     Reutiliza escapeHtml() definido arriba.
+     ============================================================ */
+
+  /* --- 1) TIEMPO (Open-Meteo) --- */
+  var PROVINCIAS = [
+    {n:'Álava',la:42.85,lo:-2.67},{n:'Albacete',la:39.01,lo:-1.86},{n:'Alicante',la:38.34,lo:-0.48},
+    {n:'Almería',la:36.83,lo:-2.46},{n:'Asturias',la:43.36,lo:-5.85},{n:'Ávila',la:40.66,lo:-4.69},
+    {n:'Badajoz',la:38.88,lo:-6.97},{n:'Baleares',la:39.57,lo:2.65},{n:'Barcelona',la:41.39,lo:2.17},
+    {n:'Burgos',la:42.34,lo:-3.70},{n:'Cáceres',la:39.48,lo:-6.37},{n:'Cádiz',la:36.53,lo:-6.29},
+    {n:'Cantabria',la:43.46,lo:-3.81},{n:'Castellón',la:39.99,lo:-0.04},{n:'Ciudad Real',la:38.99,lo:-3.93},
+    {n:'Córdoba',la:37.88,lo:-4.78},{n:'Cuenca',la:40.07,lo:-2.13},{n:'Guadalajara',la:40.63,lo:-3.16},
+    {n:'Guipúzcoa',la:43.32,lo:-1.98},{n:'Huelva',la:37.26,lo:-6.94},{n:'Huesca',la:42.14,lo:-0.41},
+    {n:'Jaén',la:37.77,lo:-3.79},{n:'A Coruña',la:43.37,lo:-8.40},{n:'La Rioja',la:42.47,lo:-2.45},
+    {n:'Las Palmas',la:28.10,lo:-15.43},{n:'León',la:42.60,lo:-5.57},{n:'Lleida',la:41.62,lo:0.63},
+    {n:'Lugo',la:43.01,lo:-7.56},{n:'Madrid',la:40.42,lo:-3.70},{n:'Málaga',la:36.72,lo:-4.42},
+    {n:'Murcia',la:37.99,lo:-1.13},{n:'Navarra',la:42.81,lo:-1.64},{n:'Ourense',la:42.34,lo:-7.86},
+    {n:'Palencia',la:42.01,lo:-4.53},{n:'Pontevedra',la:42.43,lo:-8.64},{n:'Salamanca',la:40.97,lo:-5.66},
+    {n:'Sta. C. de Tenerife',la:28.46,lo:-16.25},{n:'Segovia',la:40.95,lo:-4.12},{n:'Sevilla',la:37.39,lo:-5.98},
+    {n:'Soria',la:41.76,lo:-2.47},{n:'Tarragona',la:41.12,lo:1.25},{n:'Teruel',la:40.34,lo:-1.11},
+    {n:'Toledo',la:39.86,lo:-4.02},{n:'Valencia',la:39.47,lo:-0.38},{n:'Valladolid',la:41.65,lo:-4.72},
+    {n:'Bizkaia',la:43.26,lo:-2.93},{n:'Zamora',la:41.50,lo:-5.75},{n:'Zaragoza',la:41.65,lo:-0.88},
+    {n:'Ceuta',la:35.89,lo:-5.32},{n:'Melilla',la:35.29,lo:-2.94}
+  ];
+  var provMap = {};
+  PROVINCIAS.forEach(function (p) { provMap[p.n] = p; });
+
+  var provSelect = document.getElementById('provSelect');
+  var weatherBody = document.getElementById('weatherBody');
+
+  function weatherInfo(code) {
+    var m = {
+      0:['☀️','Despejado'],1:['🌤️','Mayormente despejado'],2:['⛅','Parcialmente nublado'],3:['☁️','Nublado'],
+      45:['🌫️','Niebla'],48:['🌫️','Niebla con escarcha'],
+      51:['🌦️','Llovizna'],53:['🌦️','Llovizna'],55:['🌧️','Llovizna intensa'],
+      61:['🌦️','Lluvia ligera'],63:['🌧️','Lluvia'],65:['🌧️','Lluvia intensa'],
+      66:['🌧️','Lluvia helada'],67:['🌧️','Lluvia helada'],
+      71:['🌨️','Nieve'],73:['🌨️','Nieve'],75:['❄️','Nieve intensa'],77:['❄️','Granizo'],
+      80:['🌦️','Chubascos'],81:['🌧️','Chubascos'],82:['⛈️','Chubascos fuertes'],
+      85:['🌨️','Chubascos de nieve'],86:['❄️','Chubascos de nieve'],
+      95:['⛈️','Tormenta'],96:['⛈️','Tormenta con granizo'],99:['⛈️','Tormenta fuerte']
+    };
+    return m[code] || ['🌡️','—'];
+  }
+
+  function loadWeather(p) {
+    if (!p || !weatherBody) return;
+    weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + p.la + '&longitude=' + p.lo +
+      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto';
+    fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var c = d.current || {};
+        var w = weatherInfo(c.weather_code);
+        weatherBody.innerHTML =
+          '<div class="wx"><span class="wx-emoji">' + w[0] + '</span>' +
+          '<div class="wx-main"><strong>' + Math.round(c.temperature_2m || 0) + '°</strong><span>' + w[1] + '</span></div></div>' +
+          '<div class="wx-meta"><span>💧 ' + (c.relative_humidity_2m || 0) + '%</span><span>🌬 ' + Math.round(c.wind_speed_10m || 0) + ' km/h</span></div>' +
+          '<span class="wx-city">' + escapeHtml(p.n) + '</span>';
+      })
+      .catch(function () { weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>'; });
+  }
+
+  if (provSelect && weatherBody) {
+    var sorted = PROVINCIAS.slice().sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
+    provSelect.innerHTML = sorted.map(function (p) {
+      return '<option' + (p.n === 'Valencia' ? ' selected' : '') + '>' + p.n + '</option>';
+    }).join('');
+    provSelect.addEventListener('change', function () { loadWeather(provMap[provSelect.value]); });
+    loadWeather(provMap['Valencia']);
+  }
+
+  /* --- 2) JUEGOS GRATIS (Free to Play) --- */
+  var gamesBody = document.getElementById('gamesBody');
+  function loadGames() {
+    if (!gamesBody) return;
+    gamesBody.innerHTML = '<div class="live-skeleton"></div><div class="live-skeleton"></div>';
+    fetch('https://api.free-to-play.dev/api/games')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var arr = (d && d.data) ? d.data : [];
+        var top = arr.slice(0, 6);
+        if (!top.length) { gamesBody.innerHTML = '<p class="live-empty">Sin juegos gratis ahora mismo.</p>'; return; }
+        gamesBody.innerHTML = '<ul class="games-list">' + top.map(function (g) {
+          var plats = Array.isArray(g.platforms) ? g.platforms.join(' · ') : (g.platforms || 'Multiplataforma');
+          var status = g.status || (g.price === 0 ? 'Free to Play' : 'Gratis');
+          var link = g.url || '#';
+          var thumb = g.thumbnail || g.image || '';
+          var img = thumb
+            ? '<img class="game-thumb" src="' + thumb + '" alt="" loading="lazy" />'
+            : '<span class="game-thumb game-thumb-ph">🎮</span>';
+          return '<li class="game-row">' + img +
+            '<div class="game-info"><a class="game-title" href="' + link + '" target="_blank" rel="noopener">' +
+            escapeHtml(g.title || 'Sin título') + '</a>' +
+            '<span class="game-meta">' + escapeHtml(plats) + ' · <b>' + escapeHtml(String(status)) + '</b></span></div></li>';
+        }).join('') + '</ul>';
+      })
+      .catch(function () { gamesBody.innerHTML = '<p class="live-empty">No se pudo cargar la lista de juegos.</p>'; });
+  }
+  loadGames();
+
+  /* --- 3) HACKER NEWS (Firebase) --- */
+  var hnList = document.getElementById('hnList');
+  function loadHN() {
+    if (!hnList) return;
+    hnList.innerHTML = '<li class="live-skeleton"></li><li class="live-skeleton"></li>';
+    fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
+      .then(function (r) { return r.json(); })
+      .then(function (ids) {
+        var top = (ids || []).slice(0, 6);
+        return Promise.all(top.map(function (id) {
+          return fetch('https://hacker-news.firebaseio.com/v0/item/' + id + '.json').then(function (r) { return r.json(); });
+        }));
+      })
+      .then(function (items) {
+        var html = items.filter(Boolean).map(function (it) {
+          var domain = 'news.ycombinator.com';
+          if (it.url) { try { domain = it.url.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, ''); } catch (e) {} }
+          var href = it.url || ('https://news.ycombinator.com/item?id=' + it.id);
+          return '<li><a href="' + href + '" target="_blank" rel="noopener">' + escapeHtml(it.title || '(sin título)') + '</a>' +
+            '<span class="hn-meta">' + escapeHtml(domain) + ' · ' + it.score + ' pts · ' + (it.descendants || 0) + ' 💬</span></li>';
+        }).join('');
+        hnList.innerHTML = html || '<li class="live-empty">Sin noticias.</li>';
+      })
+      .catch(function () { hnList.innerHTML = '<li class="live-empty">No se pudo cargar Hacker News.</li>'; });
+  }
+  loadHN();
+
   /* ===== CURSOR PERSONALIZADO ===== */
   if (finePointer && !prefersReducedMotion) {
     var dot = document.getElementById("cursorDot");
     var ring = document.getElementById("cursorRing");
     if (dot && ring) {
       var mx = window.innerWidth / 2, my = window.innerHeight / 2, rx = mx, ry = my;
-
       document.addEventListener("mousemove", function (e) {
         mx = e.clientX;
         my = e.clientY;
         dot.style.transform = "translate(" + mx + "px," + my + "px)";
       });
-
       (function loop() {
         rx += (mx - rx) * 0.18;
         ry += (my - ry) * 0.18;
         ring.style.transform = "translate(" + rx + "px," + ry + "px)";
         requestAnimationFrame(loop);
       })();
-
       document.addEventListener("mouseover", function (e) {
         if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) {
           ring.classList.add("is-hover");
         }
       });
-
       document.addEventListener("mouseout", function (e) {
         if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) {
           ring.classList.remove("is-hover");
@@ -708,7 +792,6 @@
     var ctx = canvas.getContext("2d");
     var hero = canvas.closest(".hero");
     var parts = [];
-
     function resize() {
       if (!hero) return;
       canvas.width = hero.clientWidth;
@@ -725,24 +808,20 @@
         });
       }
     }
-
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       var col = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d4ff00";
-
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, 7);
         ctx.fillStyle = col;
         ctx.globalAlpha = 0.5;
         ctx.fill();
-
         for (var j = i + 1; j < parts.length; j++) {
           var q = parts[j];
           var dx = p.x - q.x;
@@ -758,11 +837,9 @@
           }
         }
       }
-
       ctx.globalAlpha = 1;
       if (!document.hidden) requestAnimationFrame(draw);
     }
-
     resize();
     draw();
     window.addEventListener("resize", resize);
@@ -783,9 +860,6 @@
       frame.setAttribute("allow", "autoplay; fullscreen; scripts");
       frame.setAttribute("tabindex", "0");
       frame.style.cssText = "display:block;width:100%;aspect-ratio:16/10;border:0;border-radius:12px";
-
-      // Enfocar el CANVAS interno (no solo la ventana): así el teclado
-      // (Espacio = disparar) entra en el juego y la página no hace scroll.
       function focusGame() {
         try {
           var d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
@@ -795,12 +869,10 @@
           if (frame.contentWindow) frame.contentWindow.focus();
         } catch (e) {}
       }
-
       frame.addEventListener("load", function () {
         focusGame();
-        setTimeout(focusGame, 150);   // reintentos: el canvas tarda un tick
+        setTimeout(focusGame, 150);
         setTimeout(focusGame, 400);
-        // Red: si el Espacio llegase al iframe, no lo dejamos scrollear
         try {
           var d2 = frame.contentDocument || frame.contentWindow.document;
           d2.addEventListener("keydown", function (e) {
@@ -808,8 +880,7 @@
           });
         } catch (e) {}
       });
-      frame.addEventListener("click", focusGame);   // re-enfocar al pulsar dentro
-
+      frame.addEventListener("click", focusGame);
       btn.parentNode.replaceChild(frame, btn);
       setTimeout(focusGame, 300);
     });
