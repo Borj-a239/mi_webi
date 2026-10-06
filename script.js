@@ -247,7 +247,6 @@
       deactivateTrap();
     }
   }
-
   function launchKonami() {
     if (!konami) return;
     activateTrap(konami);
@@ -269,14 +268,12 @@
     }
     if (konamiClose) konamiClose.focus();
   }
-
   if (konamiClose) konamiClose.addEventListener("click", closeKonami);
   if (konami) konami.addEventListener("click", function (e) { if (e.target === konami) closeKonami(); });
 
   /* ===== GRACIAS MODAL ===== */
   var thanks = document.getElementById("thanks");
   var thanksClose = document.getElementById("thanksClose");
-
   function showThanks() {
     if (thanks) {
       activateTrap(thanks);
@@ -285,7 +282,6 @@
       if (thanksClose) thanksClose.focus();
     }
   }
-
   function hideThanks() {
     if (thanks) {
       thanks.classList.remove("show");
@@ -293,7 +289,6 @@
       deactivateTrap();
     }
   }
-
   if (thanksClose) thanksClose.addEventListener("click", hideThanks);
 
   function isModalOpen() {
@@ -303,7 +298,6 @@
       (konami && konami.classList.contains("show"))
     );
   }
-
   function isTypingTarget(target) {
     if (!target) return false;
     var tag = target.tagName;
@@ -449,7 +443,6 @@
       if (errEl) errEl.textContent = msg;
     }
   }
-
   function validateName() {
     if (!fName) return true;
     var v = fName.value.trim();
@@ -457,7 +450,6 @@
     mark(fName, errName, v.length >= 2, "Introduce al menos 2 caracteres");
     return v.length >= 2;
   }
-
   function validateEmail() {
     if (!fEmail) return true;
     var v = fEmail.value.trim();
@@ -465,7 +457,6 @@
     mark(fEmail, errEmail, emailRe.test(v), "Formato de email no válido");
     return emailRe.test(v);
   }
-
   function validateMsg() {
     if (!fMsg) return true;
     var n = fMsg.value.length;
@@ -477,7 +468,6 @@
     mark(fMsg, errMsg, n >= 10, "El mensaje es muy corto (mín. 10)");
     return n >= 10;
   }
-
   if (fName) fName.addEventListener("input", validateName);
   if (fEmail) fEmail.addEventListener("input", validateEmail);
   if (fMsg) fMsg.addEventListener("input", validateMsg);
@@ -492,10 +482,7 @@
         if (!okName && fName && fName.value.trim() === "") mark(fName, errName, false, "Este campo es obligatorio");
         if (!okEmail && fEmail && fEmail.value.trim() === "") mark(fEmail, errEmail, false, "Este campo es obligatorio");
         if (!okMsg && fMsg && fMsg.value.length === 0) mark(fMsg, errMsg, false, "Este campo es obligatorio");
-        if (formStatus) {
-          formStatus.textContent = "Revisa los campos marcados en rojo.";
-          formStatus.classList.add("error");
-        }
+        if (formStatus) { formStatus.textContent = "Revisa los campos marcados en rojo."; formStatus.classList.add("error"); }
         return;
       }
       var data = {
@@ -562,7 +549,6 @@
       + '<a class="pc-link" href="' + url + '" target="_blank" rel="noopener">Ver ↗</a>'
       + '</div></article>';
   }
-
   function renderProjects() {
     if (!projectsGrid) return;
     var q = (projectsSearch && projectsSearch.value || "").trim().toLowerCase();
@@ -578,7 +564,6 @@
     }
     if (projectsIntro) projectsIntro.textContent = "Mostrando " + list.length + " de " + allRepos.length + " repositorios" + (activeLang ? " · lenguaje: " + activeLang : "") + ".";
   }
-
   function buildLangChips() {
     if (!projectsLangs) return;
     var counts = {};
@@ -590,7 +575,6 @@
     });
     projectsLangs.innerHTML = html;
   }
-
   function loadProjects() {
     if (!projectsGrid) return;
     projectsGrid.innerHTML = '<div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>';
@@ -608,7 +592,6 @@
         projectsGrid.innerHTML = '<p class="proj-empty">No se pudo cargar GitHub ahora mismo (límite de la API). <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver mis repos ↗</a></p>';
       });
   }
-
   if (projectsSearch) projectsSearch.addEventListener("input", renderProjects);
   if (projectsLangs) projectsLangs.addEventListener("click", function (e) {
     var chip = e.target.closest(".lang-chip");
@@ -624,12 +607,12 @@
   loadProjects();
 
   /* ============================================================
-     NUEVO: WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
-     - Open-Meteo  → tiempo por provincia (selector)
-     - Free to Play→ juegos gratis del momento
-     - Hacker News → top stories (Firebase)
-     Reutiliza escapeHtml() definido arriba.
+     WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
+     - Open-Meteo forecast + geocoding → tiempo por provincia/municipio
+     - Hacker News (Firebase) → top stories
+     - jogruber → heatmap de actividad GitHub
      ============================================================ */
+  function norm(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 
   /* --- 1) TIEMPO (Open-Meteo) --- */
   var PROVINCIAS = [
@@ -653,83 +636,126 @@
   ];
   var provMap = {};
   PROVINCIAS.forEach(function (p) { provMap[p.n] = p; });
-
   var provSelect = document.getElementById('provSelect');
   var weatherBody = document.getElementById('weatherBody');
+  var cityInput = document.getElementById('cityInput');
+  var citySuggest = document.getElementById('citySuggest');
+  var currentProv = 'Valencia';
 
   function weatherInfo(code) {
     var m = {
       0:['☀️','Despejado'],1:['🌤️','Mayormente despejado'],2:['⛅','Parcialmente nublado'],3:['☁️','Nublado'],
-      45:['🌫️','Niebla'],48:['🌫️','Niebla con escarcha'],
-      51:['🌦️','Llovizna'],53:['🌦️','Llovizna'],55:['🌧️','Llovizna intensa'],
-      61:['🌦️','Lluvia ligera'],63:['🌧️','Lluvia'],65:['🌧️','Lluvia intensa'],
-      66:['🌧️','Lluvia helada'],67:['🌧️','Lluvia helada'],
-      71:['🌨️','Nieve'],73:['🌨️','Nieve'],75:['❄️','Nieve intensa'],77:['❄️','Granizo'],
-      80:['🌦️','Chubascos'],81:['🌧️','Chubascos'],82:['⛈️','Chubascos fuertes'],
-      85:['🌨️','Chubascos de nieve'],86:['❄️','Chubascos de nieve'],
-      95:['⛈️','Tormenta'],96:['⛈️','Tormenta con granizo'],99:['⛈️','Tormenta fuerte']
+      45:['🌫️','Niebla'],48:['🌫️','Niebla con escarcha'],51:['🌦️','Llovizna'],53:['🌦️','Llovizna'],55:['🌧️','Llovizna'],
+      61:['🌦️','Lluvia ligera'],63:['🌧️','Lluvia'],65:['🌧️','Lluvia intensa'],66:['🌧️','Lluvia helada'],67:['🌧️','Lluvia helada'],
+      71:['🌨️','Nieve'],73:['🌨️','Nieve'],75:['❄️','Nieve'],77:['❄️','Granizo'],80:['🌦️','Chubascos'],81:['🌧️','Chubascos'],
+      82:['⛈️','Chubascos fuertes'],85:['🌨️','Chubascos de nieve'],86:['❄️','Chubascos de nieve'],95:['⛈️','Tormenta'],
+      96:['⛈️','Tormenta con granizo'],99:['⛈️','Tormenta fuerte']
     };
     return m[code] || ['🌡️','—'];
   }
-
-  function loadWeather(p) {
-    if (!p || !weatherBody) return;
+  function renderWeather(d, name, sub) {
+    var c = d.current || {}, dy = d.daily || {};
+    var w = weatherInfo(c.weather_code);
+    var mx = (dy.temperature_2m_max || [])[0], mn = (dy.temperature_2m_min || [])[0];
+    weatherBody.innerHTML =
+      '<div class="wx-now"><span class="wx-emoji">' + w[0] + '</span>' +
+      '<div><div class="wx-temp">' + Math.round(c.temperature_2m || 0) + '°</div>' +
+      '<div class="wx-cond">' + w[1] + '</div></div></div>' +
+      '<div class="wx-stats">' +
+      '<span>⬆ ' + Math.round(mx || 0) + '°</span>' +
+      '<span>⬇ ' + Math.round(mn || 0) + '°</span>' +
+      '<span>💧 ' + (c.relative_humidity_2m || 0) + '%</span>' +
+      '<span>🌬 ' + Math.round(c.wind_speed_10m || 0) + ' km/h</span>' +
+      '<span class="wx-city">' + escapeHtml(name) + (sub ? ' · ' + escapeHtml(sub) : '') + '</span>' +
+      '</div>';
+  }
+  function loadCoords(lat, lon, name, sub) {
+    if (!weatherBody) return;
     weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
-    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + p.la + '&longitude=' + p.lo +
-      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto';
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+      '&daily=temperature_2m_max,temperature_2m_min&timezone=auto';
     fetch(url)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) {
-        var c = d.current || {};
-        var w = weatherInfo(c.weather_code);
-        weatherBody.innerHTML =
-          '<div class="wx"><span class="wx-emoji">' + w[0] + '</span>' +
-          '<div class="wx-main"><strong>' + Math.round(c.temperature_2m || 0) + '°</strong><span>' + w[1] + '</span></div></div>' +
-          '<div class="wx-meta"><span>💧 ' + (c.relative_humidity_2m || 0) + '%</span><span>🌬 ' + Math.round(c.wind_speed_10m || 0) + ' km/h</span></div>' +
-          '<span class="wx-city">' + escapeHtml(p.n) + '</span>';
-      })
+      .then(function (d) { renderWeather(d, name, sub); })
       .catch(function () { weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>'; });
   }
+  function loadCapital() {
+    var p = provMap[currentProv];
+    if (p) loadCoords(p.la, p.lo, p.n, 'Capital');
+  }
 
-  if (provSelect && weatherBody) {
+  /* geocoding con autocompletado (Open-Meteo, sin clave) */
+  var cityTimer = null, sugIndex = -1, sugItems = [];
+  function hideSug() { if (citySuggest) { citySuggest.classList.remove('show'); citySuggest.innerHTML = ''; } sugItems = []; sugIndex = -1; }
+  function paintSug() { sugItems.forEach(function (li, i) { li.classList.toggle('active', i === sugIndex); }); }
+  function fetchCity(q) {
+    if (!q || q.length < 2) { hideSug(); return; }
+    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=20&language=es&format=json';
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var res = (d.results || []).filter(function (x) {
+          return x.country_code === 'ES' && (norm(x.admin2) === norm(currentProv) || norm(x.admin1) === norm(currentProv));
+        });
+        var seen = {}, out = [];
+        res.forEach(function (x) { var k = x.name + '|' + (x.admin2 || ''); if (!seen[k]) { seen[k] = 1; out.push(x); } });
+        out = out.slice(0, 8);
+        if (!out.length) {
+          citySuggest.innerHTML = '<li class="city-none">Sin resultados en ' + escapeHtml(currentProv) + '</li>';
+          citySuggest.classList.add('show'); sugItems = []; return;
+        }
+        citySuggest.innerHTML = out.map(function (x) {
+          return '<li role="option" data-lat="' + x.latitude + '" data-lon="' + x.longitude + '" data-name="' + escapeHtml(x.name) + '" data-sub="' + escapeHtml(x.admin2 || currentProv) + '">' +
+            '<span>' + escapeHtml(x.name) + '</span><small>' + (x.admin2 ? escapeHtml(x.admin2) : '—') + '</small></li>';
+        }).join('');
+        citySuggest.classList.add('show');
+        sugItems = Array.prototype.slice.call(citySuggest.querySelectorAll('li[role="option"]'));
+        sugIndex = -1;
+      })
+      .catch(hideSug);
+  }
+  if (cityInput) {
+    cityInput.addEventListener('input', function () {
+      clearTimeout(cityTimer);
+      var q = cityInput.value.trim();
+      cityTimer = setTimeout(function () { fetchCity(q); }, 350);
+    });
+    cityInput.addEventListener('focus', function () { var q = cityInput.value.trim(); if (q.length >= 2) fetchCity(q); });
+    cityInput.addEventListener('blur', function () { setTimeout(hideSug, 150); });
+    cityInput.addEventListener('keydown', function (e) {
+      if (!sugItems.length) { if (e.key === 'Enter') { var q = cityInput.value.trim(); if (q.length >= 2) fetchCity(q); } return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); sugIndex = (sugIndex + 1) % sugItems.length; paintSug(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sugIndex = (sugIndex - 1 + sugItems.length) % sugItems.length; paintSug(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (sugIndex >= 0) sugItems[sugIndex].click(); }
+      else if (e.key === 'Escape') hideSug();
+    });
+  }
+  if (citySuggest) {
+    citySuggest.addEventListener('click', function (e) {
+      var li = e.target.closest('li[role="option"]');
+      if (!li) return;
+      cityInput.value = li.getAttribute('data-name');
+      loadCoords(li.getAttribute('data-lat'), li.getAttribute('data-lon'), li.getAttribute('data-name'), li.getAttribute('data-sub'));
+      hideSug();
+    });
+  }
+  if (provSelect) {
     var sorted = PROVINCIAS.slice().sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
     provSelect.innerHTML = sorted.map(function (p) {
-      return '<option' + (p.n === 'Valencia' ? ' selected' : '') + '>' + p.n + '</option>';
+      return '<option' + (p.n === currentProv ? ' selected' : '') + '>' + p.n + '</option>';
     }).join('');
-    provSelect.addEventListener('change', function () { loadWeather(provMap[provSelect.value]); });
-    loadWeather(provMap['Valencia']);
+    provSelect.addEventListener('change', function () {
+      currentProv = provSelect.value;
+      if (cityInput) { cityInput.value = ''; cityInput.placeholder = 'Buscar municipio en ' + currentProv + '…'; }
+      hideSug();
+      loadCapital();
+    });
+    if (cityInput) cityInput.placeholder = 'Buscar municipio en ' + currentProv + '…';
   }
+  loadCapital();
 
-  /* --- 2) JUEGOS GRATIS (Free to Play) --- */
-  var gamesBody = document.getElementById('gamesBody');
-  function loadGames() {
-    if (!gamesBody) return;
-    gamesBody.innerHTML = '<div class="live-skeleton"></div><div class="live-skeleton"></div>';
-    fetch('https://api.free-to-play.dev/api/games')
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) {
-        var arr = (d && d.data) ? d.data : [];
-        var top = arr.slice(0, 6);
-        if (!top.length) { gamesBody.innerHTML = '<p class="live-empty">Sin juegos gratis ahora mismo.</p>'; return; }
-        gamesBody.innerHTML = '<ul class="games-list">' + top.map(function (g) {
-          var plats = Array.isArray(g.platforms) ? g.platforms.join(' · ') : (g.platforms || 'Multiplataforma');
-          var status = g.status || (g.price === 0 ? 'Free to Play' : 'Gratis');
-          var link = g.url || '#';
-          var thumb = g.thumbnail || g.image || '';
-          var img = thumb
-            ? '<img class="game-thumb" src="' + thumb + '" alt="" loading="lazy" />'
-            : '<span class="game-thumb game-thumb-ph">🎮</span>';
-          return '<li class="game-row">' + img +
-            '<div class="game-info"><a class="game-title" href="' + link + '" target="_blank" rel="noopener">' +
-            escapeHtml(g.title || 'Sin título') + '</a>' +
-            '<span class="game-meta">' + escapeHtml(plats) + ' · <b>' + escapeHtml(String(status)) + '</b></span></div></li>';
-        }).join('') + '</ul>';
-      })
-      .catch(function () { gamesBody.innerHTML = '<p class="live-empty">No se pudo cargar la lista de juegos.</p>'; });
-  }
-  loadGames();
-
-  /* --- 3) HACKER NEWS (Firebase) --- */
+  /* --- 2) HACKER NEWS (Firebase) --- */
   var hnList = document.getElementById('hnList');
   function loadHN() {
     if (!hnList) return;
@@ -737,7 +763,7 @@
     fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
       .then(function (r) { return r.json(); })
       .then(function (ids) {
-        var top = (ids || []).slice(0, 6);
+        var top = (ids || []).slice(0, 5);
         return Promise.all(top.map(function (id) {
           return fetch('https://hacker-news.firebaseio.com/v0/item/' + id + '.json').then(function (r) { return r.json(); });
         }));
@@ -755,6 +781,34 @@
       .catch(function () { hnList.innerHTML = '<li class="live-empty">No se pudo cargar Hacker News.</li>'; });
   }
   loadHN();
+
+  /* --- 3) HEATMAP GITHUB (jogruber) --- */
+  var ghHeat = document.getElementById('ghHeat');
+  var ghSummary = document.getElementById('ghSummary');
+  var ghLegend = document.getElementById('ghLegend');
+  function loadHeat() {
+    if (!ghHeat) return;
+    ghHeat.innerHTML = '<div class="live-skeleton"></div>';
+    fetch('https://github-contributions-api.jogruber.de/v4/Borj-a239?y=last')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        var days = (d.lastYear || []).slice(-182); // últimas 26 semanas
+        ghHeat.innerHTML = days.map(function (c) {
+          return '<span class="gh-cell" style="background:var(--gh' + (c.level || 0) + ')" title="' + c.date + ': ' + c.count + '"></span>';
+        }).join('');
+        var tot = (d.total && d.total.lastYear) || 0;
+        var best = (d.bestDay && d.bestDay.count) || 0;
+        if (ghSummary) ghSummary.innerHTML =
+          '<div class="gh-stat"><strong>' + tot + '</strong><span>commits · 1 año</span></div>' +
+          '<div class="gh-stat"><strong>' + best + '</strong><span>mejor día</span></div>';
+        if (ghLegend) ghLegend.innerHTML =
+          '<span>Menos</span><span class="gh-swatches">' +
+          [0,1,2,3,4].map(function (l) { return '<i style="background:var(--gh' + l + ')"></i>'; }).join('') +
+          '</span><span>Más</span>';
+      })
+      .catch(function () { ghHeat.innerHTML = '<p class="live-empty">No se pudo cargar la actividad de GitHub.</p>'; });
+  }
+  loadHeat();
 
   /* ===== CURSOR PERSONALIZADO ===== */
   if (finePointer && !prefersReducedMotion) {
