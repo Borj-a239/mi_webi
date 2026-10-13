@@ -608,180 +608,285 @@
   /* ============================================================
      WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
      ============================================================ */
-  function norm(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 
-  /* --- 1) TIEMPO (Open-Meteo) con cascada provincia → municipio --- */
-  var PROVINCIAS = [
-    {n:'Álava',la:42.85,lo:-2.67},{n:'Albacete',la:39.01,lo:-1.86},{n:'Alicante',la:38.34,lo:-0.48},
-    {n:'Almería',la:36.83,lo:-2.46},{n:'Asturias',la:43.36,lo:-5.85},{n:'Ávila',la:40.66,lo:-4.69},
-    {n:'Badajoz',la:38.88,lo:-6.97},{n:'Baleares',la:39.57,lo:2.65},{n:'Barcelona',la:41.39,lo:2.17},
-    {n:'Burgos',la:42.34,lo:-3.70},{n:'Cáceres',la:39.48,lo:-6.37},{n:'Cádiz',la:36.53,lo:-6.29},
-    {n:'Cantabria',la:43.46,lo:-3.81},{n:'Castellón',la:39.99,lo:-0.04},{n:'Ciudad Real',la:38.99,lo:-3.93},
-    {n:'Córdoba',la:37.88,lo:-4.78},{n:'Cuenca',la:40.07,lo:-2.13},{n:'Guadalajara',la:40.63,lo:-3.16},
-    {n:'Guipúzcoa',la:43.32,lo:-1.98},{n:'Huelva',la:37.26,lo:-6.94},{n:'Huesca',la:42.14,lo:-0.41},
-    {n:'Jaén',la:37.77,lo:-3.79},{n:'A Coruña',la:43.37,lo:-8.40},{n:'La Rioja',la:42.47,lo:-2.45},
-    {n:'Las Palmas',la:28.10,lo:-15.43},{n:'León',la:42.60,lo:-5.57},{n:'Lleida',la:41.62,lo:0.63},
-    {n:'Lugo',la:43.01,lo:-7.56},{n:'Madrid',la:40.42,lo:-3.70},{n:'Málaga',la:36.72,lo:-4.42},
-    {n:'Murcia',la:37.99,lo:-1.13},{n:'Navarra',la:42.81,lo:-1.64},{n:'Ourense',la:42.34,lo:-7.86},
-    {n:'Palencia',la:42.01,lo:-4.53},{n:'Pontevedra',la:42.43,lo:-8.64},{n:'Salamanca',la:40.97,lo:-5.66},
-    {n:'Sta. C. de Tenerife',la:28.46,lo:-16.25},{n:'Segovia',la:40.95,lo:-4.12},{n:'Sevilla',la:37.39,lo:-5.98},
-    {n:'Soria',la:41.76,lo:-2.47},{n:'Tarragona',la:41.12,lo:1.25},{n:'Teruel',la:40.34,lo:-1.11},
-    {n:'Toledo',la:39.86,lo:-4.02},{n:'Valencia',la:39.47,lo:-0.38},{n:'Valladolid',la:41.65,lo:-4.72},
-    {n:'Bizkaia',la:43.26,lo:-2.93},{n:'Zamora',la:41.50,lo:-5.75},{n:'Zaragoza',la:41.65,lo:-0.88},
-    {n:'Ceuta',la:35.89,lo:-5.32},{n:'Melilla',la:35.29,lo:-2.94}
-  ];
-  var provMap = {};
-  PROVINCIAS.forEach(function (p) { provMap[p.n] = p; });
-  var provSelect = document.getElementById('provSelect');
-  var munSelect = document.getElementById('munSelect');
+  /* --- 1) TIEMPO (Open-Meteo) búsqueda solo España --- */
   var munInput = document.getElementById('munInput');
+  var munList = document.getElementById('munList');
   var weatherBody = document.getElementById('weatherBody');
-  var currentProv = 'Valencia';
+  var weatherTimer = null;
+
+  // Ciudad que se carga por defecto al abrir la web
+  var WEATHER_DEFAULT = {
+    name: 'Xàtiva',
+    admin1: 'Valencia',
+    lat: 38.9917,
+    lon: -0.5222
+  };
+
+  function normCity(s) {
+    return (s || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
 
   function weatherInfo(code) {
     var m = {
-      0:['☀️','Despejado'],1:['🌤️','Mayormente despejado'],2:['⛅','Parcialmente nublado'],3:['☁️','Nublado'],
-      45:['🌫️','Niebla'],48:['🌫️','Niebla con escarcha'],51:['🌦️','Llovizna'],53:['🌦️','Llovizna'],55:['🌧️','Llovizna'],
-      61:['🌦️','Lluvia ligera'],63:['🌧️','Lluvia'],65:['🌧️','Lluvia intensa'],66:['🌧️','Lluvia helada'],67:['🌧️','Lluvia helada'],
-      71:['🌨️','Nieve'],73:['🌨️','Nieve'],75:['❄️','Nieve'],77:['❄️','Granizo'],80:['🌦️','Chubascos'],81:['🌧️','Chubascos'],
-      82:['⛈️','Chubascos fuertes'],85:['🌨️','Chubascos de nieve'],86:['❄️','Chubascos de nieve'],95:['⛈️','Tormenta'],
-      96:['⛈️','Tormenta con granizo'],99:['⛈️','Tormenta fuerte']
+      0: ['☀️', 'Despejado'],
+      1: ['🌤️', 'Mayormente despejado'],
+      2: ['⛅', 'Parcialmente nublado'],
+      3: ['☁️', 'Nublado'],
+      45: ['🌫️', 'Niebla'],
+      48: ['🌫️', 'Niebla con escarcha'],
+      51: ['🌦️', 'Llovizna'],
+      53: ['🌦️', 'Llovizna'],
+      55: ['🌧️', 'Llovizna'],
+      61: ['🌦️', 'Lluvia ligera'],
+      63: ['🌧️', 'Lluvia'],
+      65: ['🌧️', 'Lluvia intensa'],
+      66: ['🌧️', 'Lluvia helada'],
+      67: ['🌧️', 'Lluvia helada'],
+      71: ['🌨️', 'Nieve'],
+      73: ['🌨️', 'Nieve'],
+      75: ['❄️', 'Nieve'],
+      77: ['❄️', 'Granizo'],
+      80: ['🌦️', 'Chubascos'],
+      81: ['🌧️', 'Chubascos'],
+      82: ['⛈️', 'Chubascos fuertes'],
+      85: ['🌨️', 'Chubascos de nieve'],
+      86: ['❄️', 'Chubascos de nieve'],
+      95: ['⛈️', 'Tormenta'],
+      96: ['⛈️', 'Tormenta con granizo'],
+      99: ['⛈️', 'Tormenta fuerte']
     };
-    return m[code] || ['🌡️','—'];
+    return m[code] || ['🌡️', '—'];
   }
+
   function renderWeather(d, name, sub) {
-    var c = d.current || {}, dy = d.daily || {};
+    if (!weatherBody) return;
+
+    var c = d.current || {};
+    var dy = d.daily || {};
     var w = weatherInfo(c.weather_code);
-    var mx = (dy.temperature_2m_max || [])[0], mn = (dy.temperature_2m_min || [])[0];
+    var mx = (dy.temperature_2m_max || [])[0];
+    var mn = (dy.temperature_2m_min || [])[0];
+
     weatherBody.innerHTML =
-      '<div class="wx-now"><span class="wx-emoji">' + w[0] + '</span>' +
-      '<div><div class="wx-temp">' + Math.round(c.temperature_2m || 0) + '°</div>' +
-      '<div class="wx-cond">' + w[1] + '</div></div></div>' +
+      '<div class="wx-now">' +
+        '<span class="wx-emoji">' + w[0] + '</span>' +
+        '<div>' +
+          '<div class="wx-temp">' + Math.round(c.temperature_2m || 0) + '°</div>' +
+          '<div class="wx-cond">' + w[1] + '</div>' +
+        '</div>' +
+      '</div>' +
       '<div class="wx-stats">' +
-      '<span>⬆ ' + Math.round(mx || 0) + '°</span>' +
-      '<span>⬇ ' + Math.round(mn || 0) + '°</span>' +
-      '<span>💧 ' + (c.relative_humidity_2m || 0) + '%</span>' +
-      '<span>🌬 ' + Math.round(c.wind_speed_10m || 0) + ' km/h</span>' +
-      '<span class="wx-city">' + escapeHtml(name) + (sub ? ' · ' + escapeHtml(sub) : '') + '</span>' +
+        '<span>⬆ ' + Math.round(mx || 0) + '°</span>' +
+        '<span>⬇ ' + Math.round(mn || 0) + '°</span>' +
+        '<span>💧 ' + (c.relative_humidity_2m || 0) + '%</span>' +
+        '<span>🌬 ' + Math.round(c.wind_speed_10m || 0) + ' km/h</span>' +
+        '<span class="wx-city">' + escapeHtml(name) + (sub ? ' · ' + escapeHtml(sub) : '') + '</span>' +
       '</div>';
   }
+
   function loadCoords(lat, lon, name, sub) {
     if (!weatherBody) return;
+
     weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
-    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+
+    var url =
+      'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
+      '&longitude=' + lon +
       '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
-      '&daily=temperature_2m_max,temperature_2m_min&timezone=auto';
+      '&daily=temperature_2m_max,temperature_2m_min' +
+      '&timezone=auto';
+
     fetch(url)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) { renderWeather(d, name, sub); })
-      .catch(function () { weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>'; });
-  }
-  function loadCapital() {
-    var p = provMap[currentProv];
-    if (p) loadCoords(p.la, p.lo, p.n, 'Capital');
-  }
-
-  function loadMunicipios(lat, lon, provName) {
-    if (!munSelect) return;
-    munSelect.disabled = true;
-    munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(provName) + ')</option>';
-
-    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(provName) + '&count=8&language=es&format=json&countrycode=ES';
-    fetch(url)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (data) {
-        var seen = {}, list = [];
-        (data.results || []).forEach(function (item) {
-          var name = item.name || item.admin1;
-          if (!name || name === provName) return;
-          var key = norm(name);
-          if (seen[key]) return;
-          seen[key] = 1;
-          list.push({ name: name, lat: item.latitude, lon: item.longitude });
-        });
-        list.sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); });
-
-        var opts = '<option value="">Capital (' + escapeHtml(provName) + ')</option>' +
-          list.map(function (m) {
-            return '<option value="' + m.lat + '|' + m.lon + '|' + escapeHtml(m.name) + '">' + escapeHtml(m.name) + '</option>';
-          }).join('');
-        munSelect.innerHTML = opts;
-        munSelect.disabled = false;
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        renderWeather(d, name, sub);
       })
       .catch(function () {
-        munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(provName) + ')</option>';
-        munSelect.disabled = false;
+        weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>';
       });
   }
 
-  function searchCityWeather(query) {
-    if (!query || query.trim().length < 2) return;
-    var q = query.trim();
-    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=5&language=es&format=json&countrycode=ES';
+  function normalizeCityInput(value) {
+    var raw = (value || '').trim();
+    var sep = raw.indexOf(' · ');
+
+    if (sep === -1) {
+      return {
+        name: raw,
+        province: ''
+      };
+    }
+
+    return {
+      name: raw.slice(0, sep).trim(),
+      province: raw.slice(sep + 3).trim()
+    };
+  }
+
+  function searchCityWeather(query, provinceName) {
+    if (!weatherBody) return;
+
+    query = (query || '').trim();
+    provinceName = (provinceName || '').trim();
+
+    if (query.length < 2) {
+      weatherBody.innerHTML = '<p class="live-empty">Escribe al menos 2 letras.</p>';
+      return;
+    }
+
+    weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
+
+    var url =
+      'https://geocoding-api.open-meteo.com/v1/search?name=' +
+      encodeURIComponent(query) +
+      '&count=10&language=es&format=json&countrycode=ES';
+
     fetch(url)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
       .then(function (data) {
         var results = (data.results || []).filter(function (item) {
           return item && item.latitude != null && item.longitude != null && item.name;
         });
+
         if (!results.length) {
-          weatherBody.innerHTML = '<p class="live-empty">No encontré ese pueblo o ciudad.</p>';
+          weatherBody.innerHTML = '<p class="live-empty">No encontré esa ciudad en España.</p>';
           return;
         }
+
+        var q = normCity(query);
+        var pq = normCity(provinceName);
+
+        results.sort(function (a, b) {
+          var an = normCity(a.name);
+          var bn = normCity(b.name);
+          var aq = an === q;
+          var bq = bn === q;
+
+          if (aq !== bq) return aq ? -1 : 1;
+
+          if (pq) {
+            var ap = normCity(a.admin1 || '') === pq || normCity(a.admin2 || '') === pq;
+            var bp = normCity(b.admin1 || '') === pq || normCity(b.admin2 || '') === pq;
+            if (ap !== bp) return ap ? -1 : 1;
+          }
+
+          return (b.population || 0) - (a.population || 0);
+        });
+
         var item = results[0];
-        var label = item.name + (item.admin1 ? ', ' + item.admin1 : '');
-        loadCoords(item.latitude, item.longitude, item.name, item.admin1 || currentProv);
+        loadCoords(item.latitude, item.longitude, item.name, item.admin1 || provinceName || '');
       })
       .catch(function () {
-        weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa localidad.</p>';
+        weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa ciudad.</p>';
       });
   }
 
-  if (provSelect) {
-    var sorted = PROVINCIAS.slice().sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
-    provSelect.innerHTML = sorted.map(function (p) {
-      return '<option' + (p.n === currentProv ? ' selected' : '') + '>' + p.n + '</option>';
-    }).join('');
-    provSelect.addEventListener('change', function () {
-      currentProv = provSelect.value;
-      var p = provMap[currentProv];
-      loadCapital();
-      if (p) loadMunicipios(p.la, p.lo, currentProv);
-    });
+  function updateSuggestions(query) {
+    if (!munList) return;
+
+    var parsed = normalizeCityInput(query);
+    var clean = (parsed.name || '').trim();
+    var province = (parsed.province || '').trim();
+
+    clearTimeout(weatherTimer);
+
+    if (clean.length < 2) {
+      munList.innerHTML = '';
+      return;
+    }
+
+    weatherTimer = setTimeout(function () {
+      var url =
+        'https://geocoding-api.open-meteo.com/v1/search?name=' +
+        encodeURIComponent(clean) +
+        '&count=10&language=es&format=json&countrycode=ES';
+
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          var results = (data.results || []).filter(function (item) {
+            return item && item.latitude != null && item.longitude != null && item.name;
+          });
+
+          var q = normCity(clean);
+          var pq = normCity(province);
+
+          results.sort(function (a, b) {
+            var an = normCity(a.name);
+            var bn = normCity(b.name);
+            var aq = an === q;
+            var bq = bn === q;
+
+            if (aq !== bq) return aq ? -1 : 1;
+
+            if (pq) {
+              var ap = normCity(a.admin1 || '') === pq || normCity(a.admin2 || '') === pq;
+              var bp = normCity(b.admin1 || '') === pq || normCity(b.admin2 || '') === pq;
+              if (ap !== bp) return ap ? -1 : 1;
+            }
+
+            return (b.population || 0) - (a.population || 0);
+          });
+
+          results = results.slice(0, 10);
+
+          munList.innerHTML = '';
+
+          results.forEach(function (item) {
+            var option = document.createElement('option');
+            var label = item.name + (item.admin1 ? ' · ' + item.admin1 : '');
+            option.value = label;
+            option.label = label;
+            option.textContent = label;
+            munList.appendChild(option);
+          });
+        })
+        .catch(function () {
+          munList.innerHTML = '';
+        });
+    }, 250);
   }
-  if (munSelect) {
-    munSelect.addEventListener('change', function () {
-      var v = munSelect.value;
-      if (!v) { loadCapital(); return; }
-      var parts = v.split('|');
-      loadCoords(parts[0], parts[1], parts[2], currentProv);
-    });
-  }
+
   if (munInput) {
+    munInput.addEventListener('input', function () {
+      updateSuggestions(munInput.value);
+    });
+
     munInput.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
         event.preventDefault();
-        searchCityWeather(munInput.value);
+        var city = normalizeCityInput(munInput.value);
+        searchCityWeather(city.name, city.province);
       }
     });
-    munInput.addEventListener('input', function () {
-      if (!munInput.value || munInput.value.trim().length < 2) return;
-      var q = munInput.value.trim();
-      var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=5&language=es&format=json&countrycode=ES';
-      fetch(url)
-        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(function (data) {
-          var options = (data.results || []).slice(0, 5).map(function (item) {
-            return '<option value="' + (item.name || '') + '"></option>';
-          }).join('');
-          if (!munSelect) return;
-          munSelect.innerHTML = '<option value="">Capital (' + escapeHtml(currentProv) + ')</option>' + options;
-        })
-        .catch(function () {});
+
+    munInput.addEventListener('change', function () {
+      var city = normalizeCityInput(munInput.value);
+      if (city.name) {
+        searchCityWeather(city.name, city.province);
+      }
     });
   }
-  loadCapital();
-  (function () { var p = provMap[currentProv]; if (p) loadMunicipios(p.la, p.lo, currentProv); })();
+
+  loadCoords(
+    WEATHER_DEFAULT.lat,
+    WEATHER_DEFAULT.lon,
+    WEATHER_DEFAULT.name,
+    WEATHER_DEFAULT.admin1
+  );
 
   /* --- 2) HACKER NEWS (Firebase) --- */
   var hnList = document.getElementById('hnList');

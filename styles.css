@@ -398,9 +398,25 @@ kbd {
 .wx-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1rem; margin-bottom: 1rem; }
 .wx-controls h3 { margin: 0; color: var(--text); font-size: 1.15rem; }
 .wx-pickers { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-left: auto; }
-#provSelect, #munSelect { font-family: inherit; font-size: .85rem; font-weight: 700; color: var(--text); background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 999px; padding: .45rem .8rem; cursor: pointer; transition: border-color .2s ease; max-width: 220px; }
-#provSelect:focus, #munSelect:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }
-#munSelect:disabled { opacity: .55; cursor: wait; }
+#munInput {
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: .45rem .8rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  max-width: 260px;
+  min-width: 170px;
+  flex: 1 1 220px;
+}
+#munInput:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent);
+}
 .wx-body { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.8rem; }
 .wx-now { display: flex; align-items: center; gap: .8rem; }
 .wx-emoji { font-size: 3rem; line-height: 1; }
@@ -572,7 +588,7 @@ html:not(.js) .reveal, html:not(.js) .card, html:not(.js) .tl-item, html:not(.js
 }
 @media (max-width: 640px) {
   .wx-stats, .wx-pickers { margin-left: 0; }
-  #provSelect, #munSelect { max-width: 100%; }
+  #munInput { max-width: 100%; }
 }
 
 @media (orientation: portrait) and (max-width: 899px) {
