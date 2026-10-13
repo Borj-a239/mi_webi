@@ -28,33 +28,34 @@
   --gh0:#161b22; --gh1:#0e4429; --gh2:#006d32; --gh3:#26a641; --gh4:#39d353;
 }
 
-/* ===== TEMA CLAR: BLANC + ROIG ===== */
+/* ===== TEMA CLAR: ATLÈTIC DE MADRID (1ª EQUIPACIÓ) ===== */
 :root[data-theme="light"] {
   --bg: #ffffff;
-  --bg-2: #f7f7f7;
-  --glow-1: rgba(255, 42, 42, 0.10);
-  --glow-2: rgba(255, 42, 42, 0.08);
-  --grid: rgba(10, 10, 15, 0.05);
-  --surface: rgba(10, 10, 15, 0.03);
-  --surface-2: rgba(10, 10, 15, 0.02);
-  --surface-hover: rgba(10, 10, 15, 0.06);
-  --border: rgba(10, 10, 15, 0.1);
-  --border-strong: rgba(10, 10, 15, 0.18);
-  --panel-bg: rgba(255, 255, 255, 0.92);
-  --panel-border: rgba(10, 10, 15, 0.1);
-  --text: #0a0a0f;
-  --text-soft: #3f3f46;
-  --muted: #71717a;
-  --accent: #ff2a2a;
-  --accent-2: #b3001b;
+  --bg-2: #ffffff;
+  --glow-1: rgba(200, 16, 46, 0.14);
+  --glow-2: rgba(28, 43, 94, 0.12);
+  --grid: rgba(28, 43, 94, 0.05);
+  --surface: rgba(200, 16, 46, 0.04);
+  --surface-2: rgba(28, 43, 94, 0.03);
+  --surface-hover: rgba(200, 16, 46, 0.08);
+  --border: rgba(28, 43, 94, 0.14);
+  --border-strong: rgba(28, 43, 94, 0.30);
+  --panel-bg: rgba(255, 255, 255, 0.94);
+  --panel-border: rgba(28, 43, 94, 0.14);
+  --text: #0a1228;
+  --text-soft: #3a4158;
+  --muted: #5f6577;
+  --accent: #cb3524;          /* vermell rojiblanco */
+  --accent-2: #1c2b5e;        /* blau marí (coll + Riyadh Air) */
   --on-accent: #ffffff;
-  --shadow: rgba(20, 30, 60, 0.12);
+  --shadow: rgba(28, 43, 94, 0.14);
   --loader-bg: #ffffff;
-  --kbd-bg: rgba(10, 10, 15, 0.06);
-  --title-glow: 0 2px 18px rgba(255, 42, 42, 0.18), 0 0 14px rgba(179, 0, 27, 0.12);
-  --title-glow-strong: 0 0 40px rgba(255, 42, 42, 0.50), 0 0 28px rgba(255, 42, 42, 0.30);
+  --kbd-bg: rgba(28, 43, 94, 0.06);
+  --title-glow: 0 2px 18px rgba(203, 53, 36, 0.22), 0 0 16px rgba(28, 43, 94, 0.12);
+  --title-glow-strong: 0 0 40px rgba(203, 53, 36, 0.55), 0 0 28px rgba(28, 43, 94, 0.30);
   --brand-grad: linear-gradient(135deg, var(--accent), var(--accent-2));
-  --gh0:#ebedf0; --gh1:#9be9a8; --gh2:#40c463; --gh3:#30a14e; --gh4:#216e39;
+  /* heatmap en escala vermella per a coherència de marca */
+  --gh0:#f3e3e3; --gh1:#f0b6b6; --gh2:#e06a6a; --gh3:#cb3524; --gh4:#7a0a1c;
 }
 
 :root {
@@ -74,6 +75,16 @@ body {
   line-height: 1.65;
   overflow-x: hidden;
   transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* Fons de samarreta: ratlles verticals rojiblanques subtils (només tema clar) */
+:root[data-theme="light"] body {
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(203, 53, 36, 0.07) 0 46px,
+      rgba(255, 255, 255, 0) 46px 92px),
+    radial-gradient(circle at top, rgba(28, 43, 94, 0.05), transparent 60%),
+    #ffffff;
 }
 
 a { color: var(--accent-2); }
@@ -468,6 +479,14 @@ kbd {
 .gh-swatches i { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
 
 .footer { background: var(--bg-2); border-top: 2px solid var(--accent); padding: 3.5rem 1.25rem 2rem; margin-top: 1.5rem; }
+/* Footer amb ratlles rojiblanques (només tema clar) */
+:root[data-theme="light"] .footer {
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(203, 53, 36, 0.05) 0 46px,
+      rgba(255, 255, 255, 0) 46px 92px),
+    #ffffff;
+}
 .contact-shell { position: relative; max-width: 1080px; margin: 0 auto; }
 .contact-shell::before { content: ""; position: absolute; inset: -2rem 0; background: radial-gradient(circle at 15% 0%, var(--glow-1), transparent 40%), radial-gradient(circle at 85% 100%, var(--glow-2), transparent 40%); pointer-events: none; opacity: 0.7; z-index: 0; }
 .contact-shell > * { position: relative; z-index: 1; }
