@@ -35,21 +35,33 @@
   }
 
   /* ===== TEMA ===== */
-  var themeToggle = document.getElementById("themeToggle");
-  var themeMeta = document.querySelector('meta[name="theme-color"]');
-  function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
-  function updateThemeColor() {
-    if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#ffffff" : "#0a0a0f");
-  }
-  updateThemeColor();
-  if (themeToggle) {
-    themeToggle.addEventListener("click", function () {
-      var next = currentTheme() === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
-      updateThemeColor();
-      try { localStorage.setItem("theme", next); } catch (e) {}
-    });
-  }
+var themeToggle = document.getElementById("themeToggle");
+var themeMeta = document.querySelector('meta[name="theme-color"]');
+function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
+function updateThemeColor() {
+  if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#ffffff" : "#0a0a0f");
+}
+function updateFavicon(theme) {
+  var link = document.querySelector('link[rel="icon"]');
+  if (!link) return;
+  var bg  = theme === "light" ? "%23cb3524" : "%23d4ff00"; // vermell Atleti / verd àcid
+  var txt = theme === "light" ? "white" : "black";
+  link.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
+    + "<rect width='64' height='64' rx='14' fill='" + bg + "'/>"
+    + "<text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='" + txt + "' text-anchor='middle' dominant-baseline='middle'>BA</text>"
+    + "</svg>";
+}
+updateThemeColor();
+updateFavicon(currentTheme());
+if (themeToggle) {
+  themeToggle.addEventListener("click", function () {
+    var next = currentTheme() === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    updateThemeColor();
+    updateFavicon(next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+  });
+}
 
   /* ===== LOADER ===== */
   var loader = document.getElementById("loader");
@@ -253,7 +265,9 @@
     konami.setAttribute("aria-hidden", "false");
     if (!prefersReducedMotion && confetti) {
       confetti.innerHTML = "";
-      var cols = ["#d4ff00", "#ff2a2a", "#ffffff", "#000000"];
+      var cols = currentTheme() === "light"
+  ? ["#cb3524", "#1c2b5e", "#ffffff", "#7a0a1c"]
+  : ["#d4ff00", "#ff2a2a", "#ffffff", "#000000"];
       for (var i = 0; i < 80; i++) {
         var c = document.createElement("span");
         c.className = "confetti-piece";
