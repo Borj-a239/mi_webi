@@ -513,7 +513,7 @@
     });
   }
 
-  /* ===== PROYECTOS (API GitHub) ===== */
+  /* ===== PROYECTOS (API GitHub con caché y reintento) ===== */
   var projectsGrid = document.getElementById("projectsGrid");
   var projectsIntro = document.getElementById("projectsIntro");
   var projectsSearch = document.getElementById("projectsSearch");
@@ -521,6 +521,8 @@
   var GITHUB_USER = "Borj-a239";
   var allRepos = [];
   var activeLang = "";
+  var GH_REPOS_CACHE_KEY = "gh_repos_cache_v1";
+  var GH_REPOS_TTL = 60 * 60 * 1000; // 1 hora
 
   function langColor(lang) {
     var map = { JavaScript:"#f1e05a", HTML:"#e34c26", CSS:"#563d7c", Python:"#3572A5", Java:"#b07219", TypeScript:"#3178c6", Shell:"#89e051", C:"#555555", "C#":"178600", PHP:"#4F5D95", Go:"#00ADD8" };
@@ -574,21 +576,71 @@
     });
     projectsLangs.innerHTML = html;
   }
-  function loadProjects() {
+  function processRepos(repos) {
+    return repos
+      .filter(function (r) { return !r.fork && (r.description || r.language); })
+      .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); })
+      .slice(0, 24);
+  }
+  function applyRepos(repos) {
+    allRepos = repos;
+    buildLangChips();
+    renderProjects();
+  }
+  function ghCacheGet() {
+    try {
+      var c = JSON.parse(localStorage.getItem(GH_REPOS_CACHE_KEY));
+      if (c && Array.isArray(c.repos) && c.repos.length) return c;
+    } catch (e) {}
+    return null;
+  }
+  function ghCacheSet(repos) {
+    try { localStorage.setItem(GH_REPOS_CACHE_KEY, JSON.stringify({ t: Date.now(), repos: repos })); } catch (e) {}
+  }
+  function renderProjectsError() {
     if (!projectsGrid) return;
+    projectsGrid.innerHTML =
+      '<p class="proj-empty">' +
+      'No he podido cargar los repos ahora mismo (límite de peticiones de GitHub). ' +
+      'Prueba de nuevo en unos minutos o míralos directamente. ' +
+      '<br><button class="retry-btn" type="button" id="retryProjects">↻ Reintentar</button> ' +
+      '<a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver mis repos ↗</a>' +
+      '</p>';
+    var btn = document.getElementById("retryProjects");
+    if (btn) btn.addEventListener("click", function () { loadProjects(true); });
+  }
+  function loadProjects(force) {
+    if (!projectsGrid) return;
+
+    var cache = ghCacheGet();
+    // Si hay caché válida y no se fuerza, la uso y no gasto una petición.
+    if (cache && !force && (Date.now() - cache.t) < GH_REPOS_TTL) {
+      applyRepos(processRepos(cache.repos));
+      return;
+    }
+
     projectsGrid.innerHTML = '<div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>';
+
     fetch("https://api.github.com/users/" + GITHUB_USER + "/repos?sort=updated&per_page=100", { headers: { Accept: "application/vnd.github+json" } })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (r) {
+        if (!r.ok) {
+          // 403 suele ser rate limit; 404 usuario mal; otros errores de red.
+          throw new Error("HTTP " + r.status);
+        }
+        return r.json();
+      })
       .then(function (repos) {
-        allRepos = repos
-          .filter(function (r) { return !r.fork && (r.description || r.language); })
-          .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); })
-          .slice(0, 24);
-        buildLangChips();
-        renderProjects();
+        var processed = processRepos(repos);
+        ghCacheSet(repos);
+        applyRepos(processed);
       })
       .catch(function () {
-        projectsGrid.innerHTML = '<p class="proj-empty">No se pudo cargar GitHub ahora mismo (límite de la API). <a href="https://github.com/' + GITHUB_USER + '" target="_blank" rel="noopener">Ver mis repos ↗</a></p>';
+        // Si la API falla, intento rescatar la caché aunque esté caducada.
+        if (cache) {
+          applyRepos(processRepos(cache.repos));
+        } else {
+          renderProjectsError();
+        }
       });
   }
   if (projectsSearch) projectsSearch.addEventListener("input", renderProjects);
@@ -609,7 +661,7 @@
      WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
      ============================================================ */
 
-  /* --- 1) TIEMPO (Open-Meteo) búsqueda solo España --- */
+  /* --- 1) TIEMPO (Open-Meteo) búsqueda de cualquier ciudad --- */
   var munInput = document.getElementById('munInput');
   var munList = document.getElementById('munList');
   var weatherBody = document.getElementById('weatherBody');
@@ -720,21 +772,21 @@
     if (sep === -1) {
       return {
         name: raw,
-        province: ''
+        region: ''
       };
     }
 
     return {
       name: raw.slice(0, sep).trim(),
-      province: raw.slice(sep + 3).trim()
+      region: raw.slice(sep + 3).trim()
     };
   }
 
-  function searchCityWeather(query, provinceName) {
+  function searchCityWeather(query, regionName) {
     if (!weatherBody) return;
 
     query = (query || '').trim();
-    provinceName = (provinceName || '').trim();
+    regionName = (regionName || '').trim();
 
     if (query.length < 2) {
       weatherBody.innerHTML = '<p class="live-empty">Escribe al menos 2 letras.</p>';
@@ -743,10 +795,11 @@
 
     weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
 
+    // Sin countrycode: busca cualquier ciudad del mundo.
     var url =
       'https://geocoding-api.open-meteo.com/v1/search?name=' +
       encodeURIComponent(query) +
-      '&count=10&language=es&format=json&countrycode=ES';
+      '&count=10&language=es&format=json';
 
     fetch(url)
       .then(function (r) {
@@ -759,13 +812,14 @@
         });
 
         if (!results.length) {
-          weatherBody.innerHTML = '<p class="live-empty">No encontré esa ciudad en España.</p>';
+          weatherBody.innerHTML = '<p class="live-empty">No encontré esa ciudad.</p>';
           return;
         }
 
         var q = normCity(query);
-        var pq = normCity(provinceName);
+        var rq = normCity(regionName);
 
+        // Prioridad: coincidencia exacta del nombre > coincidencia de región > población.
         results.sort(function (a, b) {
           var an = normCity(a.name);
           var bn = normCity(b.name);
@@ -774,17 +828,17 @@
 
           if (aq !== bq) return aq ? -1 : 1;
 
-          if (pq) {
-            var ap = normCity(a.admin1 || '') === pq || normCity(a.admin2 || '') === pq;
-            var bp = normCity(b.admin1 || '') === pq || normCity(b.admin2 || '') === pq;
-            if (ap !== bp) return ap ? -1 : 1;
+          if (rq) {
+            var ar = normCity(a.admin1 || '') === rq || normCity(a.admin2 || '') === rq;
+            var br = normCity(b.admin1 || '') === rq || normCity(b.admin2 || '') === rq;
+            if (ar !== br) return ar ? -1 : 1;
           }
 
           return (b.population || 0) - (a.population || 0);
         });
 
         var item = results[0];
-        loadCoords(item.latitude, item.longitude, item.name, item.admin1 || provinceName || '');
+        loadCoords(item.latitude, item.longitude, item.name, item.admin1 || regionName || '');
       })
       .catch(function () {
         weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa ciudad.</p>';
@@ -796,7 +850,7 @@
 
     var parsed = normalizeCityInput(query);
     var clean = (parsed.name || '').trim();
-    var province = (parsed.province || '').trim();
+    var region = (parsed.region || '').trim();
 
     clearTimeout(weatherTimer);
 
@@ -809,7 +863,7 @@
       var url =
         'https://geocoding-api.open-meteo.com/v1/search?name=' +
         encodeURIComponent(clean) +
-        '&count=10&language=es&format=json&countrycode=ES';
+        '&count=10&language=es&format=json';
 
       fetch(url)
         .then(function (r) {
@@ -822,7 +876,7 @@
           });
 
           var q = normCity(clean);
-          var pq = normCity(province);
+          var rq = normCity(region);
 
           results.sort(function (a, b) {
             var an = normCity(a.name);
@@ -832,10 +886,10 @@
 
             if (aq !== bq) return aq ? -1 : 1;
 
-            if (pq) {
-              var ap = normCity(a.admin1 || '') === pq || normCity(a.admin2 || '') === pq;
-              var bp = normCity(b.admin1 || '') === pq || normCity(b.admin2 || '') === pq;
-              if (ap !== bp) return ap ? -1 : 1;
+            if (rq) {
+              var ar = normCity(a.admin1 || '') === rq || normCity(a.admin2 || '') === rq;
+              var br = normCity(b.admin1 || '') === rq || normCity(b.admin2 || '') === rq;
+              if (ar !== br) return ar ? -1 : 1;
             }
 
             return (b.population || 0) - (a.population || 0);
@@ -869,14 +923,14 @@
       if (event.key === 'Enter') {
         event.preventDefault();
         var city = normalizeCityInput(munInput.value);
-        searchCityWeather(city.name, city.province);
+        searchCityWeather(city.name, city.region);
       }
     });
 
     munInput.addEventListener('change', function () {
       var city = normalizeCityInput(munInput.value);
       if (city.name) {
-        searchCityWeather(city.name, city.province);
+        searchCityWeather(city.name, city.region);
       }
     });
   }

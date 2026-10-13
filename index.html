@@ -323,7 +323,7 @@
         <h2 id="directo-title">En directo</h2>
         <p class="section-intro">
           Datos vivos consumidos en el navegador con <code>fetch</code>, sin backend y sin claves:
-          el tiempo por ciudad de España (<strong>Open-Meteo</strong>)
+          el tiempo de cualquier ciudad del mundo (<strong>Open-Meteo</strong>)
           y lo más visto de <strong>Hacker News</strong>.
         </p>
 
@@ -337,8 +337,8 @@
                   id="munInput"
                   list="munList"
                   type="search"
-                  placeholder="Busca ciudad de España…"
-                  aria-label="Buscar ciudad de España"
+                  placeholder="Introduce la ciudad que quieras"
+                  aria-label="Buscar ciudad"
                   autocomplete="off"
                 />
                 <datalist id="munList"></datalist>
@@ -390,12 +390,12 @@
           <li>Carrusel con imagen ampliada y control por teclado</li>
           <li>Validación del formulario en tiempo real</li>
           <li>Envío real por correo vía Formspree</li>
-          <li>Sección de proyectos cargada en vivo desde la API de GitHub</li>
+          <li>Sección de proyectos cargada en vivo desde la API de GitHub (con caché y reintentos)</li>
           <li>Buscador y filtro por lenguaje de proyectos (estado en memoria)</li>
           <li>Vídeo y audio embebidos por categoría en "Me gusta"</li>
           <li>Juego de GDevelop autoalojado con fachada click-to-play (carga bajo demanda)</li>
           <li>Heatmap de actividad GitHub debajo de los repositorios</li>
-          <li>Widgets en directo: tiempo por ciudad de España (Open-Meteo) y Hacker News</li>
+          <li>Widgets en directo: tiempo de cualquier ciudad (Open-Meteo) y Hacker News</li>
           <li>Adaptación a móvil (incluido menú inferior)</li>
         </ul>
 
@@ -505,9 +505,10 @@
         </div>
 
         <details class="changelog">
-          <summary>Changelog · v2.3</summary>
+          <summary>Changelog · v2.4</summary>
           <ul class="changelog-list">
-            <li><b>v2.3 — 2026</b>Heatmap de actividad movido a "Proyectos"; tiempo por ciudad de España (Open-Meteo).</li>
+            <li><b>v2.4 — 2026</b>Buscador del tiempo abierto a cualquier ciudad del mundo; caché de repos de GitHub en <code>localStorage</code> con reintento para evitar el rate limit.</li>
+            <li><b>v2.3 — 2026</b>Heatmap de actividad movido a "Proyectos"; tiempo por ciudad (Open-Meteo).</li>
             <li><b>v2.2 — 2026</b>"En directo" reorganizado en bento: cascada provincia→municipio, heatmap GitHub y Hacker News.</li>
             <li><b>v2.1 — 2026</b>Sección "En directo" con Open-Meteo, Free to Play y Hacker News vía fetch, sin API keys.</li>
             <li><b>v2.0 — 2026</b>Juego de GDevelop autoalojado con fachada click-to-play (carga bajo demanda) y caso problema→solución→resultado en Proyectos; vídeo y audio embebidos y alineados en "Me gusta".</li>

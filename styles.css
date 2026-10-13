@@ -333,6 +333,13 @@ kbd {
 .proj-skeleton { height: 140px; border-radius: 18px; background: linear-gradient(90deg, var(--surface), var(--surface-hover), var(--surface)); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
 .proj-empty { color: var(--text-soft); text-align: center; padding: 1rem; grid-column: 1 / -1; }
 .proj-empty a, .proj-empty .lang-chip { color: var(--accent-2); font-weight: 700; }
+.proj-empty .retry-btn {
+  display: inline-flex; align-items: center; gap: .4rem; margin-top: .6rem;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: .5rem 1rem; font: inherit; font-weight: 700; font-size: .85rem;
+  cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.proj-empty .retry-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .projects-tools { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; margin: -.5rem 0 1.2rem; }
@@ -408,8 +415,8 @@ kbd {
   border-radius: 999px;
   padding: .45rem .8rem;
   transition: border-color .2s ease, box-shadow .2s ease;
-  max-width: 260px;
-  min-width: 170px;
+  max-width: 280px;
+  min-width: 180px;
   flex: 1 1 220px;
 }
 #munInput:focus {
