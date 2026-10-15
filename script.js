@@ -75,7 +75,7 @@ if (themeToggle) {
     }, 120);
     var hideLoader = function () {
       if (loaderBar) loaderBar.style.width = "100%";
-      setTimeout(function () { loader.classList.add("hide"); }, 350);
+      setTimeout(function () { loader.classList.add("hide"); var lb = document.querySelector('.logo-ba'); if (lb) lb.classList.add('is-drawn'); }, 350);
       setTimeout(function () { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 900);
     };
     window.addEventListener("load", function () { setTimeout(hideLoader, 600); });
