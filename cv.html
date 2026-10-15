@@ -16,7 +16,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script>
-    (function(){var t;try{t=localStorage.getItem("theme");if(!t)t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}catch(e){t="dark";}document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="light"?"#ffffff":"#0a0a0f");})();
+    (function () {
+      var t;
+      try {
+        t = localStorage.getItem("theme");
+        if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      } catch (e) { t = "dark"; }
+      document.documentElement.dataset.theme = t;
+      document.documentElement.classList.add("js");
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "light" ? "#ffffff" : "#0a0a0f");
+      var bg = t === "light" ? "%23cb3524" : "%23d4ff00";
+      var tx = t === "light" ? "white" : "black";
+      var l = document.querySelector('link[rel="icon"]');
+      if (l) l.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='" + bg + "'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='" + tx + "' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>";
+    })();
   </script>
   <script src="layout.js" defer></script>
   <style>
@@ -27,13 +41,13 @@
     .cv-contact { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; margin: 0 0 2rem; font-size: .9rem; color: var(--text-soft); }
     .cv-contact a { color: var(--accent-2); text-decoration: none; }
     .cv-actions { display: flex; gap: .8rem; flex-wrap: wrap; margin: 1.5rem 0 2.5rem; }
+    /* Arreglament: sense IntersectionObserver, forçar visibilitat de timeline i cards */
+    .card, .tl-item { opacity: 1 !important; transform: none !important; }
     @media print {
       .skip-link, .cursor-dot, .cursor-ring, .theme-toggle, .cv-actions, .bottom-nav { display: none !important; }
       body { background: #fff !important; color: #000 !important; }
       .cv-wrap { padding: 0; }
-      .cv-head h1 { color: #000; }
       .card, .tl-content { box-shadow: none !important; border-color: #ccc !important; }
-      .tl-tag, .badge-tech { border-color: #999 !important; color: #000 !important; }
     }
   </style>
 </head>
@@ -55,7 +69,7 @@
       <span>Xàtiva, Comunitat Valenciana</span>
     </p>
 
-    <div class="cv-actions no-print">
+    <div class="cv-actions">
       <button class="btn" type="button" onclick="window.print()">⬇ Descargar PDF</button>
       <a class="btn btn-ghost" href="index.html">← Volver a la web</a>
     </div>
