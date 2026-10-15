@@ -328,6 +328,7 @@
     if (e.key === "Escape") {
       if (thanks && thanks.classList.contains("show")) hideThanks();
       else if (konami && konami.classList.contains("show")) closeKonami();
+      else if (botOpen && botPanel && botPanel.classList.contains("open")) closeBot();
       else closeSidebar();
     }
     if (!isTypingTarget(e.target) && !isModalOpen() && (e.key === "t" || e.key === "T") && themeToggle) {
@@ -403,12 +404,7 @@
     }, 5000);
   }
 
-  /* [C6] ============================================================
-     COPIAR EMAIL — ahora por DELEGACIÓN de eventos.
-     El botón ya no vive en el HTML: se genera desde el template de
-     info-cards, así que no puedo enlazarlo por id. Delego sobre el
-     contenedor y funciona con cualquier botón que aparezca después.
-     ============================================================ */
+  /* ===== COPIAR EMAIL (delegación) ===== */
   document.addEventListener("click", function (e) {
     var btn = e.target.closest ? e.target.closest(".copy-btn[data-email]") : null;
     if (!btn) return;
@@ -436,35 +432,22 @@
     }
   });
 
-  /* ============================================================
-     [C6] INFO-CARDS DEL FOOTER — componente reutilizable.
-     Una sola plantilla #tpl-info-card se clona por cada dato.
-     Los SVG van en un mapa de iconos (HTML propio, no datos externos).
-     ============================================================ */
+  /* ===== INFO-CARDS (template reutilizable) ===== */
   var ICONS = {
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>',
     pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
     star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z"></path></svg>'
   };
   var INFO_CARDS = [
-    {
-      icon: "mail",
-      label: "Email",
+    { icon: "mail", label: "Email",
       value: '<address class="info-value"><a href="mailto:boralbbat@alu.edu.gva.es">boralbbat@alu.edu.gva.es</a></address>',
-      extra: '<button class="copy-btn" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo"><span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span></button>'
-    },
-    {
-      icon: "pin",
-      label: "Ubicación",
+      extra: '<button class="copy-btn" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo"><span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span></button>' },
+    { icon: "pin", label: "Ubicación",
       value: '<span class="info-value">Xàtiva · Comunitat Valenciana</span>',
-      extra: '<a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>'
-    },
-    {
-      icon: "star",
-      label: "Disponibilidad",
+      extra: '<a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>' },
+    { icon: "star", label: "Disponibilidad",
       value: '<span class="info-value"><span class="avail-dot" aria-hidden="true"></span>Abierto a prácticas y proyectos</span>',
-      extra: ""
-    }
+      extra: "" }
   ];
   function mountInfoCards() {
     var host = document.getElementById("infoCards");
@@ -597,9 +580,6 @@
   function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1) + "k" : n; }
   function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
-  /* [C6] project-card vía TEMPLATE nativo en vez de innerHTML con string.
-     El navegador no re-parsea HTML (más rápido) y los datos de la API nunca
-     se inyectan como HTML (más seguro). */
   function renderProjectCard(r) {
     var tpl = document.getElementById("tpl-project");
     if (!tpl) return null;
@@ -631,7 +611,6 @@
       return matchText && matchLang;
     });
     if (!list.length) {
-      // HTML propio (sin datos externos): innerHTML controlado y seguro.
       projectsGrid.innerHTML = '<p class="proj-empty">Sin resultados con ese filtro. <button class="lang-chip" type="button" data-lang="">Limpiar</button></p>';
     } else {
       var frag = document.createDocumentFragment();
@@ -657,11 +636,7 @@
       .sort(function (a, b) { return (b.stargazers_count - a.stargazers_count) || (new Date(b.pushed_at) - new Date(a.pushed_at)); })
       .slice(0, 24);
   }
-  function applyRepos(repos) {
-    allRepos = repos;
-    buildLangChips();
-    renderProjects();
-  }
+  function applyRepos(repos) { allRepos = repos; buildLangChips(); renderProjects(); }
   function ghCacheGet() {
     try {
       var c = JSON.parse(localStorage.getItem(GH_REPOS_CACHE_KEY));
@@ -686,32 +661,13 @@
   }
   function loadProjects(force) {
     if (!projectsGrid) return;
-
     var cache = ghCacheGet();
-    if (cache && !force && (Date.now() - cache.t) < GH_REPOS_TTL) {
-      applyRepos(processRepos(cache.repos));
-      return;
-    }
-
+    if (cache && !force && (Date.now() - cache.t) < GH_REPOS_TTL) { applyRepos(processRepos(cache.repos)); return; }
     projectsGrid.innerHTML = '<div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>';
-
     fetch("https://api.github.com/users/" + GITHUB_USER + "/repos?sort=updated&per_page=100", { headers: { Accept: "application/vnd.github+json" } })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function (repos) {
-        var processed = processRepos(repos);
-        ghCacheSet(repos);
-        applyRepos(processed);
-      })
-      .catch(function () {
-        if (cache) {
-          applyRepos(processRepos(cache.repos));
-        } else {
-          renderProjectsError();
-        }
-      });
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (repos) { var processed = processRepos(repos); ghCacheSet(repos); applyRepos(processed); })
+      .catch(function () { if (cache) applyRepos(processRepos(cache.repos)); else renderProjectsError(); });
   }
   if (projectsSearch) projectsSearch.addEventListener("input", renderProjects);
   if (projectsLangs) projectsLangs.addEventListener("click", function (e) {
@@ -727,21 +683,14 @@
   });
   loadProjects();
 
-  /* ============================================================
-     WIDGETS EN DIRECTO (sin backend, sin API key, con CORS)
-     ============================================================ */
-
-  /* --- 1) TIEMPO (Open-Meteo) búsqueda de cualquier ciudad --- */
+  /* ===== WIDGETS EN DIRECTO ===== */
   var munInput = document.getElementById('munInput');
   var munList = document.getElementById('munList');
   var weatherBody = document.getElementById('weatherBody');
   var weatherTimer = null;
-
   var WEATHER_DEFAULT = { name: 'Xàtiva', admin1: 'Valencia', lat: 38.9917, lon: -0.5222 };
 
-  function normCity(s) {
-    return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  }
+  function normCity(s) { return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 
   function weatherInfo(code) {
     var m = {
@@ -865,20 +814,12 @@
   if (munInput) {
     munInput.addEventListener('input', function () { updateSuggestions(munInput.value); });
     munInput.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        var city = normalizeCityInput(munInput.value);
-        searchCityWeather(city.name, city.region);
-      }
+      if (event.key === 'Enter') { event.preventDefault(); var city = normalizeCityInput(munInput.value); searchCityWeather(city.name, city.region); }
     });
-    munInput.addEventListener('change', function () {
-      var city = normalizeCityInput(munInput.value);
-      if (city.name) searchCityWeather(city.name, city.region);
-    });
+    munInput.addEventListener('change', function () { var city = normalizeCityInput(munInput.value); if (city.name) searchCityWeather(city.name, city.region); });
   }
   loadCoords(WEATHER_DEFAULT.lat, WEATHER_DEFAULT.lon, WEATHER_DEFAULT.name, WEATHER_DEFAULT.admin1);
 
-  /* --- 2) HACKER NEWS (Firebase) --- */
   var hnList = document.getElementById('hnList');
   function loadHN() {
     if (!hnList) return;
@@ -905,7 +846,6 @@
   }
   loadHN();
 
-  /* --- 3) HEATMAP GITHUB --- */
   var ghHeat = document.getElementById('ghHeat');
   var ghSummary = document.getElementById('ghSummary');
   var ghLegend = document.getElementById('ghLegend');
@@ -1031,19 +971,15 @@
         requestAnimationFrame(loop);
       })();
       document.addEventListener("mouseover", function (e) {
-        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) ring.classList.add("is-hover");
+        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a,.bot-launcher,.bot-close,.bot-send,.bot-chip,.bot-action")) ring.classList.add("is-hover");
       });
       document.addEventListener("mouseout", function (e) {
-        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) ring.classList.remove("is-hover");
+        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a,.bot-launcher,.bot-close,.bot-send,.bot-chip,.bot-action")) ring.classList.remove("is-hover");
       });
     }
   }
 
-  /* ===== PARTÍCULAS DEL HERO ===== */
-  /* [C6] Optimizaciones de rendimiento del canvas:
-     - máximo de partículas 70 -> 50 (menos líneas O(n^2) por frame)
-     - se elimina Math.sqrt(): se compara dx*dx+dy*dy < 110^2
-     - el alpha de la línea se calcula sin raíz, solo con d2 */
+  /* ===== PARTÍCULAS DEL HERO (optimizadas) ===== */
   var canvas = document.getElementById("heroCanvas");
   if (canvas && !prefersReducedMotion) {
     var ctx = canvas.getContext("2d");
@@ -1083,7 +1019,7 @@
           var q = parts[j];
           var dx = p.x - q.x;
           var dy = p.y - q.y;
-          var d2 = dx * dx + dy * dy;          // sin sqrt
+          var d2 = dx * dx + dy * dy;
           if (d2 < LINK2) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -1100,9 +1036,7 @@
     resize();
     draw();
     window.addEventListener("resize", resize);
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) draw();
-    });
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) draw(); });
   }
 
   /* ===== FACADE DEL JUEGO (click-to-play) ===== */
@@ -1139,5 +1073,201 @@
       btn.parentNode.replaceChild(frame, btn);
       setTimeout(focusGame, 300);
     });
+  });
+
+  /* ============================================================
+     [C1] XATBOT DE CONTACTE — respuesta automática rule-based
+     Gratis, sin backend y sin API keys. Recorrido del dato:
+     entrada -> normalizar (sin acentos/minúsculas) -> puntuar
+     reglas por keywords -> renderizar burbuja + quick replies ->
+     si hay accio: prefill del #contactForm -> submit Formspree ->
+     correo real. Reutiliza helpers del IIFE (escapeHtml, goToSection,
+     form/fName/fMsg, showThanks).
+     ============================================================ */
+  var botLauncher = document.getElementById("botLauncher");
+  var botPanel = document.getElementById("botPanel");
+  var botLog = document.getElementById("botLog");
+  var botQuick = document.getElementById("botQuick");
+  var botFormEl = document.getElementById("botForm");
+  var botInput = document.getElementById("botInput");
+  var botCloseBtn = document.getElementById("botClose");
+  var botOpen = false, botName = "", botGreeted = false;
+
+  function botCap(s) { return (s || "").replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+  function botNorm(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function botRich(t) { return escapeHtml(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); }
+
+  // Base de conocimiento local. Cada regla: id, keywords, respuesta,
+  // quick replies [texto, id-destino] y acción opcional.
+  var BOT_KB = [
+    { id: "greet", keys: ["hola","buenas","hey","que tal","saludos","holi","bon dia","buenos dias","buenas tardes"],
+      res: "¡Hola! 👋 Soy el asistente de Borja. Puedo contarte qué estudia, si está disponible para prácticas, enseñarte sus proyectos o abrirte directamente el formulario de contacto.",
+      quick: [["¿Quién es Borja?","who"],["¿Está disponible?","avail"],["Ver proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "who", keys: ["quien eres","quien es","sobre ti","sobre el","borja","que haces","a que te dedicas","eres"],
+      res: "Borja Albert Bataller, estudiante de **1º DAM** en el IES Simarro (Xàtiva). Vengo del mundo del hardware (GM de SMX) y ahora programo. Le van los shooters, montar PCs y el Atleti. 🎮⚽",
+      quick: [["Formación","form"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "form", keys: ["formacion","estudia","dam","ies","simarro","clases","estudios","gm","smx","asignatura"],
+      res: "Está en **1º DAM** (Desarrollo de Aplicaciones Multiplataforma) en el IES Simarro. Antes hizo GM de SMX (Sistemas Microinformáticos y Redes). Su meta: trabajar programando o acabar enseñando. 📚",
+      quick: [["Proyectos","projects"],["Disponibilidad","avail"],["Escribirle","contact"]] },
+
+    { id: "avail", keys: ["disponible","practicas","trabajo","empleo","freelance","presupuesto","precio","contratar","horario","fct","practica"],
+      res: "Está **abierto a prácticas (FCT) y proyectos**. Si quieres que te eche un cable o quieres su CV, lo más rápido es el formulario: me llega al correo al instante. 📬",
+      action: "form", actionLabel: "Abrir formulario",
+      quick: [["Ver proyectos","projects"],["Su correo","mail"]] },
+
+    { id: "projects", keys: ["proyecto","proyectos","github","repos","repositorio","juego","gdevelop","portfolio","hecho","codigo"],
+      res: "Todo su código está en GitHub (@Borj-a239): esta web, ejercicios de DAM y un juego en GDevelop. Lo tienes en la sección **Proyectos** de la web, cargado en vivo desde la API. 🚀",
+      action: "section:proyectos", actionLabel: "Ver Proyectos",
+      quick: [["Disponibilidad","avail"],["Escribirle","contact"]] },
+
+    { id: "contact", keys: ["contacto","escribir","correo","email","mail","mensaje","hablar","hablemos","telefono","numero"],
+      res: "¡Genial! Te abro el formulario de contacto. En cuanto lo envíes, el mensaje me llega directo al correo de Borja. 📬",
+      action: "form", actionLabel: "Abrir formulario",
+      quick: [["Su correo","mail"],["Disponibilidad","avail"]] },
+
+    { id: "mail", keys: ["correo electronico","direccion correo","email de contacto"],
+      res: "Su correo es **boralbbat@alu.edu.gva.es**. Puedes copiarlo con el botón de la sección Contacto. ✉️",
+      action: "mail", actionLabel: "Enviar correo",
+      quick: [["Escribirle","contact"],["Ver proyectos","projects"]] },
+
+    { id: "hobbies", keys: ["videojuego","juego","halo","cs","valorant","call of duty","rainbow","battlefield","futbol","atletico","atleti","gusta","hobby"],
+      res: "Le van los shooters (Halo, CS2, Valorant, CoD, Rainbow Six, Battlefield), montar PCs y redes, y es del Atleti. 💪❤️🤍",
+      quick: [["Formación","form"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "name", keys: ["me llamo","mi nombre es","nombre es"],
+      res: function (t) {
+        var m = t.match(/(?:me llamo|mi nombre es|nombre es)\s+([a-záéíóúñ ]{2,30})/i);
+        var n = m ? botCap(m[1].trim()) : "";
+        if (n) { botName = n; if (fName && !fName.value) fName.value = n; }
+        return n ? ("Encantado, " + n + ". Te he prefillado el nombre en el formulario. 👇") : "¿Me dices tu nombre? (ej: me llamo Ana)";
+      },
+      quick: [["Escribirle","contact"]] },
+
+    { id: "thanks", keys: ["gracias","genial","perfecto","bien","ok","vale","crack","molt be"],
+      res: "¡De nada! 😄 Si quieres, te dejo el formulario listo para escribirle.",
+      action: "form", actionLabel: "Abrir formulario" },
+
+    { id: "bye", keys: ["adios","hasta luego","chao","bye","nos vemos","me voy"],
+      res: "¡Hasta pronto! 👋 Recuerda que el formulario de contacto siempre está disponible.",
+      quick: [["Escribirle","contact"]] }
+  ];
+  var BOT_BY_ID = {};
+  BOT_KB.forEach(function (r) { BOT_BY_ID[r.id] = r; });
+
+  function botBest(text) {
+    var t = botNorm(text), best = null, score = 0;
+    BOT_KB.forEach(function (r) {
+      var s = 0;
+      r.keys.forEach(function (k) { if (t.indexOf(botNorm(k)) >= 0) s++; });
+      if (s > score) { score = s; best = r; }
+    });
+    return score > 0 ? best : null;
+  }
+
+  function botBubble(role, html) {
+    var el = document.createElement("div");
+    el.className = "bot-msg bot-" + role;
+    el.innerHTML = html;
+    botLog.appendChild(el);
+    botLog.scrollTop = botLog.scrollHeight;
+  }
+  function botSay(text) { botBubble("bot", botRich(text)); }
+  function botTyping(on) {
+    var el = document.getElementById("botTyping");
+    if (on) {
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "botTyping"; el.className = "bot-typing";
+        el.innerHTML = "<span></span><span></span><span></span>";
+        botLog.appendChild(el); botLog.scrollTop = botLog.scrollHeight;
+      }
+    } else if (el) el.remove();
+  }
+  function renderQuick(list) {
+    botQuick.innerHTML = "";
+    (list || []).forEach(function (q) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "bot-chip";
+      b.setAttribute("data-bot-intent", q[1]);
+      b.textContent = q[0];
+      botQuick.appendChild(b);
+    });
+  }
+  function botReply(rule, userText) {
+    var res = typeof rule.res === "function" ? rule.res(userText || "") : rule.res;
+    botBubble("bot", botRich(res));
+    if (rule.action) {
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "bot-action";
+      btn.setAttribute("data-bot-action", rule.action);
+      btn.textContent = rule.actionLabel || "Continuar";
+      botLog.appendChild(btn);
+      botLog.scrollTop = botLog.scrollHeight;
+    }
+    renderQuick(rule.quick || []);
+  }
+  function botOpenForm() {
+    goToSection("contacto");
+    setTimeout(function () {
+      if (fName && !fName.value && botName) fName.value = botName;
+      if (fMsg && !fMsg.value) fMsg.value = "Hola Borja, te escribo desde el asistente de la web: ";
+      if (fName) fName.focus();
+    }, 500);
+    botSay("Te he abierto el formulario de contacto aquí abajo. 👇");
+  }
+  function botSend(text, intentId) {
+    if (!botOpen) openBot();
+    botBubble("user", botRich(text || ""));
+    botQuick.innerHTML = "";
+    botInput.value = "";
+    botTyping(true);
+    var delay = prefersReducedMotion ? 0 : 420;
+    setTimeout(function () {
+      botTyping(false);
+      var rule = intentId ? BOT_BY_ID[intentId] : botBest(text);
+      botReply(rule || BOT_BY_ID["greet"], text || "");
+    }, delay);
+  }
+  function openBot() {
+    botOpen = true;
+    botPanel.classList.add("open");
+    botLauncher.classList.add("active");
+    botPanel.setAttribute("aria-hidden", "false");
+    botLauncher.setAttribute("aria-expanded", "true");
+    botLauncher.setAttribute("aria-label", "Cerrar asistente de contacto");
+    if (!botGreeted) { botGreeted = true; botReply(BOT_BY_ID["greet"], ""); }
+    setTimeout(function () { botInput.focus(); }, 60);
+    try { localStorage.setItem("bot_seen", "1"); } catch (e) {}
+  }
+  function closeBot() {
+    botOpen = false;
+    botPanel.classList.remove("open");
+    botLauncher.classList.remove("active");
+    botPanel.setAttribute("aria-hidden", "true");
+    botLauncher.setAttribute("aria-expanded", "false");
+    botLauncher.setAttribute("aria-label", "Abrir asistente de contacto");
+    if (botLauncher) botLauncher.focus();
+  }
+
+  if (botLauncher) botLauncher.addEventListener("click", function () { botOpen ? closeBot() : openBot(); });
+  if (botCloseBtn) botCloseBtn.addEventListener("click", closeBot);
+  if (botFormEl) botFormEl.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = botInput.value.trim();
+    if (v) botSend(v);
+  });
+  if (botQuick) botQuick.addEventListener("click", function (e) {
+    var c = e.target.closest("[data-bot-intent]");
+    if (c) botSend(c.textContent, c.getAttribute("data-bot-intent"));
+  });
+  if (botLog) botLog.addEventListener("click", function (e) {
+    var a = e.target.closest("[data-bot-action]");
+    if (!a) return;
+    var act = a.getAttribute("data-bot-action");
+    if (act === "form") botOpenForm();
+    else if (act === "mail") window.location.href = "mailto:boralbbat@alu.edu.gva.es";
+    else if (act.indexOf("section:") === 0) goToSection(act.slice(8));
   });
 })();

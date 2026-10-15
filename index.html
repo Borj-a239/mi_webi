@@ -131,10 +131,6 @@
     </div>
   </div>
 
-  <!-- [C6] TEMPLATE reutilizable de tarjeta de proyecto.
-       Se instancia N veces desde script.js con datos de la API de GitHub.
-       Ventaja: el navegador no parsea HTML desde string (más rápido) y no
-       hace falta innerHTML con datos externos (más seguro). -->
   <template id="tpl-project">
     <article class="project-card">
       <div class="pc-head">
@@ -151,8 +147,6 @@
     </article>
   </template>
 
-  <!-- [C6] TEMPLATE reutilizable de tarjeta de contacto.
-       Las 3 info-cards del footer se generan clonando este único template. -->
   <template id="tpl-info-card">
     <div class="info-card">
       <span class="info-icon" aria-hidden="true"></span>
@@ -415,7 +409,7 @@
           </article>
           <article class="card">
             <h3>Aprendido</h3>
-            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, consumo de una <code>API REST</code> (GitHub) con filtro en memoria, y componentes reutilizables con <code>&lt;template&gt;</code> nativo.</p>
+            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, consumo de una <code>API REST</code> (GitHub) con filtro en memoria, componentes reutilizables con <code>&lt;template&gt;</code> nativo, y un <strong>chatbot de contacto rule-based</strong> sin backend.</p>
           </article>
         </div>
 
@@ -426,6 +420,7 @@
           <li>Carrusel con imagen ampliada y control por teclado</li>
           <li>Validación del formulario en tiempo real</li>
           <li>Envío real por correo vía Formspree</li>
+          <li>Chatbot de contacto con respuesta automática (sin backend, sin API keys)</li>
           <li>Sección de proyectos cargada en vivo desde la API de GitHub (con caché y reintentos)</li>
           <li>Buscador y filtro por lenguaje de proyectos (estado en memoria)</li>
           <li>Vídeo y audio embebidos por categoría en "Me gusta"</li>
@@ -453,7 +448,6 @@
 
         <div class="contact-grid">
           <div class="contact-info">
-            <!-- [C6] Las 3 info-cards se generan desde el template #tpl-info-card -->
             <div class="info-cards" id="infoCards"></div>
 
             <figure class="ies-figure">
@@ -511,8 +505,9 @@
         </div>
 
         <details class="changelog">
-          <summary>Changelog · v2.5</summary>
+          <summary>Changelog · v2.6</summary>
           <ul class="changelog-list">
+            <li><b>v2.6 — 2026</b>Xatbot de contacto con respuesta automática (rule-based, sin backend ni API keys): responde solo y puede prefillar el formulario de contacto.</li>
             <li><b>v2.5 — 2026</b>Performance del tema oscuro (glow más barato, <code>color-mix</code> precomputado, canvas sin <code>sqrt</code>) y componentes reutilizables con <code>&lt;template&gt;</code> para proyectos y contacto.</li>
             <li><b>v2.4 — 2026</b>Buscador del tiempo abierto a cualquier ciudad del mundo; caché de repos de GitHub en <code>localStorage</code> con reintento para evitar el rate limit.</li>
             <li><b>v2.3 — 2026</b>Heatmap de actividad movido a "Proyectos"; tiempo por ciudad (Open-Meteo).</li>
@@ -535,6 +530,32 @@
         <p class="copyright">© <span id="year">2026</span> Borja Albert Bataller · Web en construcción 🚧</p>
       </div>
     </footer>
+  </div>
+
+  <!-- [C1] XATBOT DE CONTACTE: botón flotante + panel. Gratis, sin backend, sin API keys. -->
+  <button class="bot-launcher" id="botLauncher" type="button" aria-label="Abrir asistente de contacto" aria-expanded="false" aria-controls="botPanel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+    </svg>
+    <span class="bot-badge" aria-hidden="true"></span>
+  </button>
+
+  <div class="bot-panel" id="botPanel" role="dialog" aria-modal="false" aria-label="Asistente de contacto" aria-hidden="true">
+    <header class="bot-head">
+      <span class="bot-avatar" aria-hidden="true">BA</span>
+      <div class="bot-head-txt">
+        <strong>Asistente de Borja</strong>
+        <span>Respuestas automáticas · sin servidor</span>
+      </div>
+      <button class="bot-close" id="botClose" type="button" aria-label="Cerrar asistente">✕</button>
+    </header>
+    <div class="bot-log" id="botLog" role="log" aria-live="polite" aria-label="Conversación con el asistente"></div>
+    <div class="bot-quick" id="botQuick" role="group" aria-label="Sugerencias"></div>
+    <form class="bot-form" id="botForm" autocomplete="off">
+      <label class="sr-only" for="botInput">Escribe tu pregunta al asistente</label>
+      <input id="botInput" type="text" placeholder="Escribe una pregunta…" maxlength="200" />
+      <button type="submit" class="bot-send" aria-label="Enviar pregunta">➤</button>
+    </form>
   </div>
 
   <nav class="bottom-nav" id="bottomNav" aria-label="Navegación inferior">
