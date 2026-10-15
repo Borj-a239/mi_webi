@@ -1,18 +1,26 @@
- <!-- 404.html -->
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>404 · Página no encontrada</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23e50914'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='white' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>" />
+  <meta name="description" content="Página no encontrada. Vuelve al inicio de la web personal de Borja Albert Bataller." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="404 · Página no encontrada" />
+  <meta property="og:description" content="Esta página no existe. Vuelve al inicio." />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23d4ff00'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='black' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function(){var t;try{t=localStorage.getItem("theme");if(!t)t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}catch(e){t="dark";}document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="light"?"#ffffff":"#0a0a0f");})();
+  </script>
+  <script src="layout.js" defer></script>
 </head>
 <body>
-  <div class="notfound">
+  <div class="notfound" id="contenido">
     <span class="monogram monogram-sm" aria-hidden="true">BA</span>
     <h1>404</h1>
     <p class="nf-msg">Esta página no existe o fue movida. Parece que perdiste el spawn point.</p>
