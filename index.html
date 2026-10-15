@@ -131,11 +131,43 @@
     </div>
   </div>
 
+  <!-- [C6] TEMPLATE reutilizable de tarjeta de proyecto.
+       Se instancia N veces desde script.js con datos de la API de GitHub.
+       Ventaja: el navegador no parsea HTML desde string (más rápido) y no
+       hace falta innerHTML con datos externos (más seguro). -->
+  <template id="tpl-project">
+    <article class="project-card">
+      <div class="pc-head">
+        <h3><a class="pc-title" target="_blank" rel="noopener"></a></h3>
+        <span class="pc-lang"><span class="pc-dot"></span><span class="pc-lang-name"></span></span>
+      </div>
+      <p class="pc-desc"></p>
+      <div class="pc-meta">
+        <span class="pc-stat pc-stars"></span>
+        <span class="pc-stat pc-forks"></span>
+        <span class="pc-stat pc-date"></span>
+        <a class="pc-link" target="_blank" rel="noopener">Ver ↗</a>
+      </div>
+    </article>
+  </template>
+
+  <!-- [C6] TEMPLATE reutilizable de tarjeta de contacto.
+       Las 3 info-cards del footer se generan clonando este único template. -->
+  <template id="tpl-info-card">
+    <div class="info-card">
+      <span class="info-icon" aria-hidden="true"></span>
+      <div class="info-body">
+        <span class="info-label"></span>
+        <div class="info-value-slot"></div>
+        <div class="info-extra"></div>
+      </div>
+    </div>
+  </template>
+
   <div class="page">
     <header class="hero" id="inicio">
       <canvas class="hero-particles" id="heroCanvas" aria-hidden="true"></canvas>
       <div class="hero-content">
-        <!-- 👇 ÚNICO CANVI: logo BA animat (SVG propi) -->
         <span class="logo-ba" aria-hidden="true">
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo BA">
             <rect class="lg-box" x="4" y="4" width="56" height="56" rx="13"></rect>
@@ -273,7 +305,6 @@
           <div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div><div class="proj-skeleton"></div>
         </div>
 
-        <!-- ===== MI ACTIVIDAD (heatmap GitHub), debajo de los repos ===== -->
         <article class="live-card gh-card reveal-inner">
           <div class="live-head"><h3>Mi actividad</h3><a class="live-tag" href="https://github.com/Borj-a239" target="_blank" rel="noopener">@Borj-a239</a></div>
           <div class="gh-summary" id="ghSummary"></div>
@@ -308,15 +339,15 @@
         <div class="carousel" id="carousel" aria-label="Galería de imágenes">
           <div class="carousel-track" id="carouselTrack">
             <figure class="slide">
-              <img src="img/halo.webp" alt="Halo, mi shooter favorito" width="1280" height="720" loading="lazy" />
+              <img src="img/halo.webp" alt="Halo, mi shooter favorito" width="1280" height="720" loading="lazy" decoding="async" />
               <figcaption>Halo — mi shooter favorito</figcaption>
             </figure>
             <figure class="slide">
-              <img src="img/tech.webp" alt="Montaje de PC y dispositivos de red" width="1280" height="720" loading="lazy" />
+              <img src="img/tech.webp" alt="Montaje de PC y dispositivos de red" width="1280" height="720" loading="lazy" decoding="async" />
               <figcaption>Tecnología — montaje de PC y redes</figcaption>
             </figure>
             <figure class="slide">
-              <img src="img/imagenes.webp" alt="Fútbol y Atlético de Madrid" width="1280" height="720" loading="lazy" />
+              <img src="img/imagenes.webp" alt="Fútbol y Atlético de Madrid" width="1280" height="720" loading="lazy" decoding="async" />
               <figcaption>Fútbol — fan del Atlético de Madrid</figcaption>
             </figure>
           </div>
@@ -326,7 +357,6 @@
         </div>
       </section>
 
-      <!-- ===== SECCIÓN: EN DIRECTO (tiempo + Hacker News) ===== -->
       <section id="directo" class="section reveal" aria-labelledby="directo-title">
         <h2 id="directo-title">En directo</h2>
         <p class="section-intro">
@@ -336,7 +366,6 @@
         </p>
 
         <div class="live-grid">
-          <!-- Tiempo -->
           <article class="live-card live-weather">
             <div class="wx-controls">
               <h3>El tiempo</h3>
@@ -355,7 +384,6 @@
             <div id="weatherBody" class="wx-body"><div class="live-skeleton wx-skel"></div></div>
           </article>
 
-          <!-- Hacker News -->
           <article class="live-card live-hn">
             <div class="live-head"><h3>Hacker News</h3><span class="live-tag">Top</span></div>
             <ul class="hn-list" id="hnList"><li class="live-skeleton"></li><li class="live-skeleton"></li></ul>
@@ -387,7 +415,7 @@
           </article>
           <article class="card">
             <h3>Aprendido</h3>
-            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, y consumo de una <code>API REST</code> (GitHub) con filtro en memoria para la sección de proyectos.</p>
+            <p>Control del DOM, <code>IntersectionObserver</code> para animaciones y scroll-spy, un poco de <code>canvas</code> para las partículas, consumo de una <code>API REST</code> (GitHub) con filtro en memoria, y componentes reutilizables con <code>&lt;template&gt;</code> nativo.</p>
           </article>
         </div>
 
@@ -404,6 +432,7 @@
           <li>Juego de GDevelop autoalojado con fachada click-to-play (carga bajo demanda)</li>
           <li>Heatmap de actividad GitHub debajo de los repositorios</li>
           <li>Widgets en directo: tiempo de cualquier ciudad (Open-Meteo) y Hacker News</li>
+          <li>Componentes reutilizables con <code>&lt;template&gt;</code> (proyectos y contacto)</li>
           <li>Adaptación a móvil (incluido menú inferior)</li>
         </ul>
 
@@ -424,48 +453,17 @@
 
         <div class="contact-grid">
           <div class="contact-info">
-            <div class="info-card">
-              <span class="info-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>
-              </span>
-              <div class="info-body">
-                <span class="info-label">Email</span>
-                <address class="info-value"><a href="mailto:boralbbat@alu.edu.gva.es" id="emailLink">boralbbat@alu.edu.gva.es</a></address>
-                <button class="copy-btn" id="copyEmail" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo">
-                  <span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <span class="info-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </span>
-              <div class="info-body">
-                <span class="info-label">Ubicación</span>
-                <span class="info-value">Xàtiva · Comunitat Valenciana</span>
-                <a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>
-              </div>
-            </div>
-
-            <div class="info-card">
-              <span class="info-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z"></path></svg>
-              </span>
-              <div class="info-body">
-                <span class="info-label">Disponibilidad</span>
-                <span class="info-value"><span class="avail-dot" aria-hidden="true"></span>Abierto a prácticas y proyectos</span>
-              </div>
-            </div>
+            <!-- [C6] Las 3 info-cards se generan desde el template #tpl-info-card -->
+            <div class="info-cards" id="infoCards"></div>
 
             <figure class="ies-figure">
-              <img src="img/ies.webp" alt="IES Simarro" width="800" height="420" loading="lazy" />
+              <img src="img/ies.webp" alt="IES Simarro" width="800" height="420" loading="lazy" decoding="async" />
               <figcaption>IES Simarro · Xàtiva, Comunitat Valenciana, España</figcaption>
             </figure>
 
             <nav class="social" aria-label="Redes sociales">
               <a href="https://github.com/Borj-a239" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.17c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 1 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path></svg>
                 GitHub
               </a>
               <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">
@@ -513,8 +511,9 @@
         </div>
 
         <details class="changelog">
-          <summary>Changelog · v2.4</summary>
+          <summary>Changelog · v2.5</summary>
           <ul class="changelog-list">
+            <li><b>v2.5 — 2026</b>Performance del tema oscuro (glow más barato, <code>color-mix</code> precomputado, canvas sin <code>sqrt</code>) y componentes reutilizables con <code>&lt;template&gt;</code> para proyectos y contacto.</li>
             <li><b>v2.4 — 2026</b>Buscador del tiempo abierto a cualquier ciudad del mundo; caché de repos de GitHub en <code>localStorage</code> con reintento para evitar el rate limit.</li>
             <li><b>v2.3 — 2026</b>Heatmap de actividad movido a "Proyectos"; tiempo por ciudad (Open-Meteo).</li>
             <li><b>v2.2 — 2026</b>"En directo" reorganizado en bento: cascada provincia→municipio, heatmap GitHub y Hacker News.</li>

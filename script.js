@@ -35,33 +35,33 @@
   }
 
   /* ===== TEMA ===== */
-var themeToggle = document.getElementById("themeToggle");
-var themeMeta = document.querySelector('meta[name="theme-color"]');
-function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
-function updateThemeColor() {
-  if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#ffffff" : "#0a0a0f");
-}
-function updateFavicon(theme) {
-  var link = document.querySelector('link[rel="icon"]');
-  if (!link) return;
-  var bg  = theme === "light" ? "%23cb3524" : "%23d4ff00"; // vermell Atleti / verd àcid
-  var txt = theme === "light" ? "white" : "black";
-  link.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
-    + "<rect width='64' height='64' rx='14' fill='" + bg + "'/>"
-    + "<text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='" + txt + "' text-anchor='middle' dominant-baseline='middle'>BA</text>"
-    + "</svg>";
-}
-updateThemeColor();
-updateFavicon(currentTheme());
-if (themeToggle) {
-  themeToggle.addEventListener("click", function () {
-    var next = currentTheme() === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    updateThemeColor();
-    updateFavicon(next);
-    try { localStorage.setItem("theme", next); } catch (e) {}
-  });
-}
+  var themeToggle = document.getElementById("themeToggle");
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  function currentTheme() { return document.documentElement.dataset.theme || "dark"; }
+  function updateThemeColor() {
+    if (themeMeta) themeMeta.setAttribute("content", currentTheme() === "light" ? "#ffffff" : "#0a0a0f");
+  }
+  function updateFavicon(theme) {
+    var link = document.querySelector('link[rel="icon"]');
+    if (!link) return;
+    var bg  = theme === "light" ? "%23cb3524" : "%23d4ff00";
+    var txt = theme === "light" ? "white" : "black";
+    link.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
+      + "<rect width='64' height='64' rx='14' fill='" + bg + "'/>"
+      + "<text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='" + txt + "' text-anchor='middle' dominant-baseline='middle'>BA</text>"
+      + "</svg>";
+  }
+  updateThemeColor();
+  updateFavicon(currentTheme());
+  if (themeToggle) {
+    themeToggle.addEventListener("click", function () {
+      var next = currentTheme() === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      updateThemeColor();
+      updateFavicon(next);
+      try { localStorage.setItem("theme", next); } catch (e) {}
+    });
+  }
 
   /* ===== LOADER ===== */
   var loader = document.getElementById("loader");
@@ -266,8 +266,8 @@ if (themeToggle) {
     if (!prefersReducedMotion && confetti) {
       confetti.innerHTML = "";
       var cols = currentTheme() === "light"
-  ? ["#cb3524", "#1c2b5e", "#ffffff", "#7a0a1c"]
-  : ["#d4ff00", "#ff2a2a", "#ffffff", "#000000"];
+        ? ["#cb3524", "#1c2b5e", "#ffffff", "#7a0a1c"]
+        : ["#d4ff00", "#ff2a2a", "#ffffff", "#000000"];
       for (var i = 0; i < 80; i++) {
         var c = document.createElement("span");
         c.className = "confetti-piece";
@@ -403,34 +403,86 @@ if (themeToggle) {
     }, 5000);
   }
 
-  /* ===== COPIAR EMAIL ===== */
-  var copyBtn = document.getElementById("copyEmail");
-  if (copyBtn) {
-    copyBtn.addEventListener("click", function () {
-      var email = copyBtn.getAttribute("data-email");
-      var done = function () {
-        copyBtn.classList.add("copied");
-        var lbl = copyBtn.querySelector(".copy-label");
-        var old = lbl ? lbl.textContent : "";
-        if (lbl) lbl.textContent = "¡Copiado!";
-        setTimeout(function () {
-          copyBtn.classList.remove("copied");
-          if (lbl) lbl.textContent = old;
-        }, 1800);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(email).then(done).catch(done);
-      } else {
-        var ta = document.createElement("textarea");
-        ta.value = email;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); } catch (e) {}
-        document.body.removeChild(ta);
-        done();
-      }
+  /* [C6] ============================================================
+     COPIAR EMAIL — ahora por DELEGACIÓN de eventos.
+     El botón ya no vive en el HTML: se genera desde el template de
+     info-cards, así que no puedo enlazarlo por id. Delego sobre el
+     contenedor y funciona con cualquier botón que aparezca después.
+     ============================================================ */
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest(".copy-btn[data-email]") : null;
+    if (!btn) return;
+    var email = btn.getAttribute("data-email");
+    var done = function () {
+      btn.classList.add("copied");
+      var lbl = btn.querySelector(".copy-label");
+      var old = lbl ? lbl.textContent : "";
+      if (lbl) lbl.textContent = "¡Copiado!";
+      setTimeout(function () {
+        btn.classList.remove("copied");
+        if (lbl) lbl.textContent = old;
+      }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(done).catch(done);
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = email;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (err) {}
+      document.body.removeChild(ta);
+      done();
+    }
+  });
+
+  /* ============================================================
+     [C6] INFO-CARDS DEL FOOTER — componente reutilizable.
+     Una sola plantilla #tpl-info-card se clona por cada dato.
+     Los SVG van en un mapa de iconos (HTML propio, no datos externos).
+     ============================================================ */
+  var ICONS = {
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 7 10 6 10-6"></path></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z"></path></svg>'
+  };
+  var INFO_CARDS = [
+    {
+      icon: "mail",
+      label: "Email",
+      value: '<address class="info-value"><a href="mailto:boralbbat@alu.edu.gva.es">boralbbat@alu.edu.gva.es</a></address>',
+      extra: '<button class="copy-btn" type="button" data-email="boralbbat@alu.edu.gva.es" aria-label="Copiar correo"><span class="copy-icon">⧉</span> <span class="copy-label">Copiar</span></button>'
+    },
+    {
+      icon: "pin",
+      label: "Ubicación",
+      value: '<span class="info-value">Xàtiva · Comunitat Valenciana</span>',
+      extra: '<a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>'
+    },
+    {
+      icon: "star",
+      label: "Disponibilidad",
+      value: '<span class="info-value"><span class="avail-dot" aria-hidden="true"></span>Abierto a prácticas y proyectos</span>',
+      extra: ""
+    }
+  ];
+  function mountInfoCards() {
+    var host = document.getElementById("infoCards");
+    var tpl = document.getElementById("tpl-info-card");
+    if (!host || !tpl) return;
+    var frag = document.createDocumentFragment();
+    INFO_CARDS.forEach(function (d) {
+      var node = tpl.content.firstElementChild.cloneNode(true);
+      node.querySelector(".info-icon").innerHTML = ICONS[d.icon] || "";
+      node.querySelector(".info-label").textContent = d.label;
+      node.querySelector(".info-value-slot").innerHTML = d.value;
+      var extra = node.querySelector(".info-extra");
+      if (d.extra) extra.innerHTML = d.extra; else extra.remove();
+      frag.appendChild(node);
     });
+    host.replaceChildren(frag);
   }
+  mountInfoCards();
 
   /* ===== FORMULARIO DE CONTACTO (Formspree) ===== */
   var FORM_ENDPOINT = "https://formspree.io/f/mqpawkyp";
@@ -536,7 +588,7 @@ if (themeToggle) {
   var allRepos = [];
   var activeLang = "";
   var GH_REPOS_CACHE_KEY = "gh_repos_cache_v1";
-  var GH_REPOS_TTL = 60 * 60 * 1000; // 1 hora
+  var GH_REPOS_TTL = 60 * 60 * 1000;
 
   function langColor(lang) {
     var map = { JavaScript:"#f1e05a", HTML:"#e34c26", CSS:"#563d7c", Python:"#3572A5", Java:"#b07219", TypeScript:"#3178c6", Shell:"#89e051", C:"#555555", "C#":"178600", PHP:"#4F5D95", Go:"#00ADD8" };
@@ -545,24 +597,30 @@ if (themeToggle) {
   function formatNum(n) { return n >= 1000 ? (n/1000).toFixed(1) + "k" : n; }
   function escapeHtml(s) { return (s || "").replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
-  function cardHTML(r) {
-    var desc = escapeHtml(r.description || "Sin descripción todavía.");
-    var lang = r.language || "";
-    var color = lang ? langColor(lang) : "var(--muted)";
-    var url = r.html_url;
-    var name = escapeHtml(r.name);
-    var fecha = new Date(r.pushed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
-    return '<article class="project-card">'
-      + '<div class="pc-head"><h3><a href="' + url + '" target="_blank" rel="noopener">' + name + '</a></h3>'
-      + (lang ? '<span class="pc-lang"><span class="pc-dot" style="background:' + color + '"></span>' + lang + '</span>' : '')
-      + '</div>'
-      + '<p class="pc-desc">' + desc + '</p>'
-      + '<div class="pc-meta">'
-      + '<span class="pc-stat">★ ' + formatNum(r.stargazers_count) + '</span>'
-      + '<span class="pc-stat">⑂ ' + formatNum(r.forks_count) + '</span>'
-      + '<span class="pc-stat">' + fecha + '</span>'
-      + '<a class="pc-link" href="' + url + '" target="_blank" rel="noopener">Ver ↗</a>'
-      + '</div></article>';
+  /* [C6] project-card vía TEMPLATE nativo en vez de innerHTML con string.
+     El navegador no re-parsea HTML (más rápido) y los datos de la API nunca
+     se inyectan como HTML (más seguro). */
+  function renderProjectCard(r) {
+    var tpl = document.getElementById("tpl-project");
+    if (!tpl) return null;
+    var node = tpl.content.firstElementChild.cloneNode(true);
+    var title = node.querySelector(".pc-title");
+    title.textContent = r.name;
+    title.href = r.html_url;
+    var langWrap = node.querySelector(".pc-lang");
+    if (r.language) {
+      langWrap.querySelector(".pc-dot").style.background = langColor(r.language);
+      langWrap.querySelector(".pc-lang-name").textContent = r.language;
+    } else {
+      langWrap.remove();
+    }
+    node.querySelector(".pc-desc").textContent = r.description || "Sin descripción todavía.";
+    node.querySelector(".pc-stars").textContent = "★ " + formatNum(r.stargazers_count);
+    node.querySelector(".pc-forks").textContent = "⑂ " + formatNum(r.forks_count);
+    node.querySelector(".pc-date").textContent = new Date(r.pushed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+    var link = node.querySelector(".pc-link");
+    link.href = r.html_url;
+    return node;
   }
   function renderProjects() {
     if (!projectsGrid) return;
@@ -573,9 +631,12 @@ if (themeToggle) {
       return matchText && matchLang;
     });
     if (!list.length) {
+      // HTML propio (sin datos externos): innerHTML controlado y seguro.
       projectsGrid.innerHTML = '<p class="proj-empty">Sin resultados con ese filtro. <button class="lang-chip" type="button" data-lang="">Limpiar</button></p>';
     } else {
-      projectsGrid.innerHTML = list.map(cardHTML).join("");
+      var frag = document.createDocumentFragment();
+      list.forEach(function (r) { var n = renderProjectCard(r); if (n) frag.appendChild(n); });
+      projectsGrid.replaceChildren(frag);
     }
     if (projectsIntro) projectsIntro.textContent = "Mostrando " + list.length + " de " + allRepos.length + " repositorios" + (activeLang ? " · lenguaje: " + activeLang : "") + ".";
   }
@@ -627,7 +688,6 @@ if (themeToggle) {
     if (!projectsGrid) return;
 
     var cache = ghCacheGet();
-    // Si hay caché válida y no se fuerza, la uso y no gasto una petición.
     if (cache && !force && (Date.now() - cache.t) < GH_REPOS_TTL) {
       applyRepos(processRepos(cache.repos));
       return;
@@ -637,10 +697,7 @@ if (themeToggle) {
 
     fetch("https://api.github.com/users/" + GITHUB_USER + "/repos?sort=updated&per_page=100", { headers: { Accept: "application/vnd.github+json" } })
       .then(function (r) {
-        if (!r.ok) {
-          // 403 suele ser rate limit; 404 usuario mal; otros errores de red.
-          throw new Error("HTTP " + r.status);
-        }
+        if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       })
       .then(function (repos) {
@@ -649,7 +706,6 @@ if (themeToggle) {
         applyRepos(processed);
       })
       .catch(function () {
-        // Si la API falla, intento rescatar la caché aunque esté caducada.
         if (cache) {
           applyRepos(processRepos(cache.repos));
         } else {
@@ -681,70 +737,35 @@ if (themeToggle) {
   var weatherBody = document.getElementById('weatherBody');
   var weatherTimer = null;
 
-  // Ciudad que se carga por defecto al abrir la web
-  var WEATHER_DEFAULT = {
-    name: 'Xàtiva',
-    admin1: 'Valencia',
-    lat: 38.9917,
-    lon: -0.5222
-  };
+  var WEATHER_DEFAULT = { name: 'Xàtiva', admin1: 'Valencia', lat: 38.9917, lon: -0.5222 };
 
   function normCity(s) {
-    return (s || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+    return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
   function weatherInfo(code) {
     var m = {
-      0: ['☀️', 'Despejado'],
-      1: ['🌤️', 'Mayormente despejado'],
-      2: ['⛅', 'Parcialmente nublado'],
-      3: ['☁️', 'Nublado'],
-      45: ['🌫️', 'Niebla'],
-      48: ['🌫️', 'Niebla con escarcha'],
-      51: ['🌦️', 'Llovizna'],
-      53: ['🌦️', 'Llovizna'],
-      55: ['🌧️', 'Llovizna'],
-      61: ['🌦️', 'Lluvia ligera'],
-      63: ['🌧️', 'Lluvia'],
-      65: ['🌧️', 'Lluvia intensa'],
-      66: ['🌧️', 'Lluvia helada'],
-      67: ['🌧️', 'Lluvia helada'],
-      71: ['🌨️', 'Nieve'],
-      73: ['🌨️', 'Nieve'],
-      75: ['❄️', 'Nieve'],
-      77: ['❄️', 'Granizo'],
-      80: ['🌦️', 'Chubascos'],
-      81: ['🌧️', 'Chubascos'],
-      82: ['⛈️', 'Chubascos fuertes'],
-      85: ['🌨️', 'Chubascos de nieve'],
-      86: ['❄️', 'Chubascos de nieve'],
-      95: ['⛈️', 'Tormenta'],
-      96: ['⛈️', 'Tormenta con granizo'],
-      99: ['⛈️', 'Tormenta fuerte']
+      0: ['☀️','Despejado'], 1: ['🌤️','Mayormente despejado'], 2: ['⛅','Parcialmente nublado'], 3: ['☁️','Nublado'],
+      45: ['🌫️','Niebla'], 48: ['🌫️','Niebla con escarcha'], 51: ['🌦️','Llovizna'], 53: ['🌦️','Llovizna'], 55: ['🌧️','Llovizna'],
+      61: ['🌦️','Lluvia ligera'], 63: ['🌧️','Lluvia'], 65: ['🌧️','Lluvia intensa'], 66: ['🌧️','Lluvia helada'], 67: ['🌧️','Lluvia helada'],
+      71: ['🌨️','Nieve'], 73: ['🌨️','Nieve'], 75: ['❄️','Nieve'], 77: ['❄️','Granizo'], 80: ['🌦️','Chubascos'], 81: ['🌧️','Chubascos'],
+      82: ['⛈️','Chubascos fuertes'], 85: ['🌨️','Chubascos de nieve'], 86: ['❄️','Chubascos de nieve'], 95: ['⛈️','Tormenta'],
+      96: ['⛈️','Tormenta con granizo'], 99: ['⛈️','Tormenta fuerte']
     };
-    return m[code] || ['🌡️', '—'];
+    return m[code] || ['🌡️','—'];
   }
 
   function renderWeather(d, name, sub) {
     if (!weatherBody) return;
-
     var c = d.current || {};
     var dy = d.daily || {};
     var w = weatherInfo(c.weather_code);
     var mx = (dy.temperature_2m_max || [])[0];
     var mn = (dy.temperature_2m_min || [])[0];
-
     weatherBody.innerHTML =
-      '<div class="wx-now">' +
-        '<span class="wx-emoji">' + w[0] + '</span>' +
-        '<div>' +
-          '<div class="wx-temp">' + Math.round(c.temperature_2m || 0) + '°</div>' +
-          '<div class="wx-cond">' + w[1] + '</div>' +
-        '</div>' +
-      '</div>' +
+      '<div class="wx-now"><span class="wx-emoji">' + w[0] + '</span><div>' +
+        '<div class="wx-temp">' + Math.round(c.temperature_2m || 0) + '°</div>' +
+        '<div class="wx-cond">' + w[1] + '</div></div></div>' +
       '<div class="wx-stats">' +
         '<span>⬆ ' + Math.round(mx || 0) + '°</span>' +
         '<span>⬇ ' + Math.round(mn || 0) + '°</span>' +
@@ -756,183 +777,93 @@ if (themeToggle) {
 
   function loadCoords(lat, lon, name, sub) {
     if (!weatherBody) return;
-
     weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
-
-    var url =
-      'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
-      '&longitude=' + lon +
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
       '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
-      '&daily=temperature_2m_max,temperature_2m_min' +
-      '&timezone=auto';
-
+      '&daily=temperature_2m_max,temperature_2m_min&timezone=auto';
     fetch(url)
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (d) {
-        renderWeather(d, name, sub);
-      })
-      .catch(function () {
-        weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>';
-      });
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) { renderWeather(d, name, sub); })
+      .catch(function () { weatherBody.innerHTML = '<p class="live-empty">No se pudo cargar el tiempo.</p>'; });
   }
 
   function normalizeCityInput(value) {
     var raw = (value || '').trim();
     var sep = raw.indexOf(' · ');
-
-    if (sep === -1) {
-      return {
-        name: raw,
-        region: ''
-      };
-    }
-
-    return {
-      name: raw.slice(0, sep).trim(),
-      region: raw.slice(sep + 3).trim()
-    };
+    if (sep === -1) return { name: raw, region: '' };
+    return { name: raw.slice(0, sep).trim(), region: raw.slice(sep + 3).trim() };
   }
 
   function searchCityWeather(query, regionName) {
     if (!weatherBody) return;
-
     query = (query || '').trim();
     regionName = (regionName || '').trim();
-
-    if (query.length < 2) {
-      weatherBody.innerHTML = '<p class="live-empty">Escribe al menos 2 letras.</p>';
-      return;
-    }
-
+    if (query.length < 2) { weatherBody.innerHTML = '<p class="live-empty">Escribe al menos 2 letras.</p>'; return; }
     weatherBody.innerHTML = '<div class="live-skeleton wx-skel"></div>';
-
-    // Sin countrycode: busca cualquier ciudad del mundo.
-    var url =
-      'https://geocoding-api.open-meteo.com/v1/search?name=' +
-      encodeURIComponent(query) +
-      '&count=10&language=es&format=json';
-
+    var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=10&language=es&format=json';
     fetch(url)
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (data) {
-        var results = (data.results || []).filter(function (item) {
-          return item && item.latitude != null && item.longitude != null && item.name;
-        });
-
-        if (!results.length) {
-          weatherBody.innerHTML = '<p class="live-empty">No encontré esa ciudad.</p>';
-          return;
-        }
-
-        var q = normCity(query);
-        var rq = normCity(regionName);
-
-        // Prioridad: coincidencia exacta del nombre > coincidencia de región > población.
+        var results = (data.results || []).filter(function (item) { return item && item.latitude != null && item.longitude != null && item.name; });
+        if (!results.length) { weatherBody.innerHTML = '<p class="live-empty">No encontré esa ciudad.</p>'; return; }
+        var q = normCity(query), rq = normCity(regionName);
         results.sort(function (a, b) {
-          var an = normCity(a.name);
-          var bn = normCity(b.name);
-          var aq = an === q;
-          var bq = bn === q;
-
+          var an = normCity(a.name), bn = normCity(b.name);
+          var aq = an === q, bq = bn === q;
           if (aq !== bq) return aq ? -1 : 1;
-
           if (rq) {
             var ar = normCity(a.admin1 || '') === rq || normCity(a.admin2 || '') === rq;
             var br = normCity(b.admin1 || '') === rq || normCity(b.admin2 || '') === rq;
             if (ar !== br) return ar ? -1 : 1;
           }
-
           return (b.population || 0) - (a.population || 0);
         });
-
         var item = results[0];
         loadCoords(item.latitude, item.longitude, item.name, item.admin1 || regionName || '');
       })
-      .catch(function () {
-        weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa ciudad.</p>';
-      });
+      .catch(function () { weatherBody.innerHTML = '<p class="live-empty">No se pudo buscar esa ciudad.</p>'; });
   }
 
   function updateSuggestions(query) {
     if (!munList) return;
-
     var parsed = normalizeCityInput(query);
     var clean = (parsed.name || '').trim();
     var region = (parsed.region || '').trim();
-
     clearTimeout(weatherTimer);
-
-    if (clean.length < 2) {
-      munList.innerHTML = '';
-      return;
-    }
-
+    if (clean.length < 2) { munList.innerHTML = ''; return; }
     weatherTimer = setTimeout(function () {
-      var url =
-        'https://geocoding-api.open-meteo.com/v1/search?name=' +
-        encodeURIComponent(clean) +
-        '&count=10&language=es&format=json';
-
+      var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(clean) + '&count=10&language=es&format=json';
       fetch(url)
-        .then(function (r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(function (data) {
-          var results = (data.results || []).filter(function (item) {
-            return item && item.latitude != null && item.longitude != null && item.name;
-          });
-
-          var q = normCity(clean);
-          var rq = normCity(region);
-
+          var results = (data.results || []).filter(function (item) { return item && item.latitude != null && item.longitude != null && item.name; });
+          var q = normCity(clean), rq = normCity(region);
           results.sort(function (a, b) {
-            var an = normCity(a.name);
-            var bn = normCity(b.name);
-            var aq = an === q;
-            var bq = bn === q;
-
+            var an = normCity(a.name), bn = normCity(b.name);
+            var aq = an === q, bq = bn === q;
             if (aq !== bq) return aq ? -1 : 1;
-
             if (rq) {
               var ar = normCity(a.admin1 || '') === rq || normCity(a.admin2 || '') === rq;
               var br = normCity(b.admin1 || '') === rq || normCity(b.admin2 || '') === rq;
               if (ar !== br) return ar ? -1 : 1;
             }
-
             return (b.population || 0) - (a.population || 0);
           });
-
           results = results.slice(0, 10);
-
           munList.innerHTML = '';
-
           results.forEach(function (item) {
             var option = document.createElement('option');
             var label = item.name + (item.admin1 ? ' · ' + item.admin1 : '');
-            option.value = label;
-            option.label = label;
-            option.textContent = label;
+            option.value = label; option.label = label; option.textContent = label;
             munList.appendChild(option);
           });
         })
-        .catch(function () {
-          munList.innerHTML = '';
-        });
+        .catch(function () { munList.innerHTML = ''; });
     }, 250);
   }
 
   if (munInput) {
-    munInput.addEventListener('input', function () {
-      updateSuggestions(munInput.value);
-    });
-
+    munInput.addEventListener('input', function () { updateSuggestions(munInput.value); });
     munInput.addEventListener('keydown', function (event) {
       if (event.key === 'Enter') {
         event.preventDefault();
@@ -940,21 +871,12 @@ if (themeToggle) {
         searchCityWeather(city.name, city.region);
       }
     });
-
     munInput.addEventListener('change', function () {
       var city = normalizeCityInput(munInput.value);
-      if (city.name) {
-        searchCityWeather(city.name, city.region);
-      }
+      if (city.name) searchCityWeather(city.name, city.region);
     });
   }
-
-  loadCoords(
-    WEATHER_DEFAULT.lat,
-    WEATHER_DEFAULT.lon,
-    WEATHER_DEFAULT.name,
-    WEATHER_DEFAULT.admin1
-  );
+  loadCoords(WEATHER_DEFAULT.lat, WEATHER_DEFAULT.lon, WEATHER_DEFAULT.name, WEATHER_DEFAULT.admin1);
 
   /* --- 2) HACKER NEWS (Firebase) --- */
   var hnList = document.getElementById('hnList');
@@ -983,7 +905,7 @@ if (themeToggle) {
   }
   loadHN();
 
-  /* --- 3) HEATMAP GITHUB (jogruber interactivo + imagen real rshah de respaldo) --- */
+  /* --- 3) HEATMAP GITHUB --- */
   var ghHeat = document.getElementById('ghHeat');
   var ghSummary = document.getElementById('ghSummary');
   var ghLegend = document.getElementById('ghLegend');
@@ -991,7 +913,6 @@ if (themeToggle) {
   var GH_CACHE_TTL = 10 * 60 * 1000;
 
   function ghLevel(n) { return n === 0 ? 0 : n < 3 ? 1 : n < 6 ? 2 : n < 10 ? 3 : 4; }
-
   function ghFromArr(a) {
     if (!Array.isArray(a) || !a.length) return null;
     var sum = 0;
@@ -1015,9 +936,7 @@ if (themeToggle) {
     }
     return sum > 0 ? arr : null;
   }
-  function ghPick(d) {
-    return ghFromArr(d.days) || ghFromArr(d.lastYear) || ghFromObj(d.contributions);
-  }
+  function ghPick(d) { return ghFromArr(d.days) || ghFromArr(d.lastYear) || ghFromObj(d.contributions); }
 
   function ghRender(days) {
     ghHeat.style.display = 'grid';
@@ -1027,16 +946,13 @@ if (themeToggle) {
     days = pad.concat(days);
     var total = 0, best = 0;
     days.forEach(function (c) { if (!c.empty) { total += c.count; if (c.count > best) best = c.count; } });
-
     ghHeat.innerHTML = days.map(function (c) {
       if (c.empty) return '<span class="gh-cell gh-empty"></span>';
       return '<span class="gh-cell" style="background:var(--gh' + c.level + ')" title="' + c.date + ': ' + c.count + ' contribuciones"></span>';
     }).join('');
-
     if (ghSummary) ghSummary.innerHTML =
       '<div class="gh-stat"><strong>' + total + '</strong><span>commits · 1 año</span></div>' +
       '<div class="gh-stat"><strong>' + best + '</strong><span>mejor día</span></div>';
-
     if (ghLegend) ghLegend.innerHTML =
       '<span>Menos</span><span class="gh-swatches">' +
       [0,1,2,3,4].map(function(l){ return '<i style="background:var(--gh'+l+')"></i>'; }).join('') +
@@ -1091,9 +1007,7 @@ if (themeToggle) {
           if (days) {
             try { localStorage.setItem(GH_CACHE_KEY, JSON.stringify({ t: Date.now(), days: days })); } catch (e) {}
             ghRender(days);
-          } else {
-            tryNext(i + 1);
-          }
+          } else { tryNext(i + 1); }
         })
         .catch(function () { tryNext(i + 1); });
     })(0);
@@ -1107,8 +1021,7 @@ if (themeToggle) {
     if (dot && ring) {
       var mx = window.innerWidth / 2, my = window.innerHeight / 2, rx = mx, ry = my;
       document.addEventListener("mousemove", function (e) {
-        mx = e.clientX;
-        my = e.clientY;
+        mx = e.clientX; my = e.clientY;
         dot.style.transform = "translate(" + mx + "px," + my + "px)";
       });
       (function loop() {
@@ -1118,29 +1031,30 @@ if (themeToggle) {
         requestAnimationFrame(loop);
       })();
       document.addEventListener("mouseover", function (e) {
-        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) {
-          ring.classList.add("is-hover");
-        }
+        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) ring.classList.add("is-hover");
       });
       document.addEventListener("mouseout", function (e) {
-        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) {
-          ring.classList.remove("is-hover");
-        }
+        if (e.target.closest("a,button,.copy-btn,.car-btn,.nav-link,.bottom-link,.social a")) ring.classList.remove("is-hover");
       });
     }
   }
 
   /* ===== PARTÍCULAS DEL HERO ===== */
+  /* [C6] Optimizaciones de rendimiento del canvas:
+     - máximo de partículas 70 -> 50 (menos líneas O(n^2) por frame)
+     - se elimina Math.sqrt(): se compara dx*dx+dy*dy < 110^2
+     - el alpha de la línea se calcula sin raíz, solo con d2 */
   var canvas = document.getElementById("heroCanvas");
   if (canvas && !prefersReducedMotion) {
     var ctx = canvas.getContext("2d");
     var hero = canvas.closest(".hero");
     var parts = [];
+    var LINK = 110, LINK2 = LINK * LINK;
     function resize() {
       if (!hero) return;
       canvas.width = hero.clientWidth;
       canvas.height = hero.clientHeight;
-      var n = Math.min(70, Math.floor(canvas.width / 16));
+      var n = Math.min(50, Math.floor(canvas.width / 18));
       parts = [];
       for (var i = 0; i < n; i++) {
         parts.push({
@@ -1157,8 +1071,7 @@ if (themeToggle) {
       var col = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d4ff00";
       for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx; p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
         ctx.beginPath();
@@ -1170,12 +1083,12 @@ if (themeToggle) {
           var q = parts[j];
           var dx = p.x - q.x;
           var dy = p.y - q.y;
-          var d = Math.sqrt(dx * dx + dy * dy);
-          if (d < 110) {
+          var d2 = dx * dx + dy * dy;          // sin sqrt
+          if (d2 < LINK2) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.globalAlpha = (1 - d / 110) * 0.25;
+            ctx.globalAlpha = (1 - d2 / LINK2) * 0.25;
             ctx.strokeStyle = col;
             ctx.stroke();
           }
@@ -1219,9 +1132,7 @@ if (themeToggle) {
         setTimeout(focusGame, 400);
         try {
           var d2 = frame.contentDocument || frame.contentWindow.document;
-          d2.addEventListener("keydown", function (e) {
-            if (e.code === "Space") e.preventDefault();
-          });
+          d2.addEventListener("keydown", function (e) { if (e.code === "Space") e.preventDefault(); });
         } catch (e) {}
       });
       frame.addEventListener("click", focusGame);

@@ -22,9 +22,15 @@
   --shadow: rgba(0, 0, 0, 0.5);
   --loader-bg: #000000;
   --kbd-bg: rgba(255, 255, 255, 0.06);
-  --title-glow: 0 0 28px rgba(212, 255, 0, 0.35), 0 0 18px rgba(212, 255, 0, 0.20);
-  --title-glow-strong: 0 0 42px rgba(212, 255, 0, 0.60), 0 0 28px rgba(212, 255, 0, 0.35);
+  /* [C6] Glow del título: blurs reducidos (antes 42/28px). Un text-shadow con
+     blur grande obliga a rasterizar capas grandes cada frame sobre fondo negro;
+     bajarlo recorta el coste de paint sin perder el efecto neón. */
+  --title-glow: 0 0 24px rgba(212, 255, 0, 0.30), 0 0 14px rgba(212, 255, 0, 0.16);
+  --title-glow-strong: 0 0 26px rgba(212, 255, 0, 0.50), 0 0 14px rgba(212, 255, 0, 0.28);
   --brand-grad: linear-gradient(135deg, var(--accent), var(--accent-2));
+  /* [C6] Anillo de pulso precomputado: el keyframe ya no llama a color-mix() */
+  --pulse-ring: rgba(212, 255, 0, 0.60);
+  --pulse-ring-0: rgba(212, 255, 0, 0.00);
   --gh0:#161b22; --gh1:#0e4429; --gh2:#006d32; --gh3:#26a641; --gh4:#39d353;
 }
 
@@ -45,8 +51,8 @@
   --text: #0a1228;
   --text-soft: #3a4158;
   --muted: #5f6577;
-  --accent: #cb3524;          /* vermell rojiblanco */
-  --accent-2: #1c2b5e;        /* blau marí (coll + Riyadh Air) */
+  --accent: #cb3524;
+  --accent-2: #1c2b5e;
   --on-accent: #ffffff;
   --shadow: rgba(28, 43, 94, 0.14);
   --loader-bg: #ffffff;
@@ -54,7 +60,9 @@
   --title-glow: 0 2px 18px rgba(203, 53, 36, 0.22), 0 0 16px rgba(28, 43, 94, 0.12);
   --title-glow-strong: 0 0 40px rgba(203, 53, 36, 0.55), 0 0 28px rgba(28, 43, 94, 0.30);
   --brand-grad: linear-gradient(135deg, var(--accent), var(--accent-2));
-  /* heatmap en escala vermella per a coherència de marca */
+  /* [C6] Anillo de pulso precomputado (rojo Atleti) */
+  --pulse-ring: rgba(203, 53, 36, 0.60);
+  --pulse-ring-0: rgba(203, 53, 36, 0.00);
   --gh0:#f3e3e3; --gh1:#f0b6b6; --gh2:#e06a6a; --gh3:#cb3524; --gh4:#7a0a1c;
 }
 
@@ -77,7 +85,6 @@ body {
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* Fons de samarreta: ratlles verticals rojiblanques subtils (només tema clar) */
 :root[data-theme="light"] body {
   background:
     repeating-linear-gradient(90deg,
@@ -412,29 +419,16 @@ kbd {
 .live-skeleton { height: 60px; border-radius: 12px; background: linear-gradient(90deg, var(--surface), var(--surface-hover), var(--surface)); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
 .live-empty { color: var(--muted); font-size: .9rem; text-align: center; padding: 1rem 0; }
 
-/* tiempo */
 .wx-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1rem; margin-bottom: 1rem; }
 .wx-controls h3 { margin: 0; color: var(--text); font-size: 1.15rem; }
 .wx-pickers { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-left: auto; }
 #munInput {
-  font-family: inherit;
-  font-size: .85rem;
-  font-weight: 700;
-  color: var(--text);
-  background: var(--bg-2);
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  padding: .45rem .8rem;
-  transition: border-color .2s ease, box-shadow .2s ease;
-  max-width: 280px;
-  min-width: 180px;
-  flex: 1 1 220px;
+  font-family: inherit; font-size: .85rem; font-weight: 700; color: var(--text);
+  background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 999px;
+  padding: .45rem .8rem; transition: border-color .2s ease, box-shadow .2s ease;
+  max-width: 280px; min-width: 180px; flex: 1 1 220px;
 }
-#munInput:focus {
-  outline: none;
-  border-color: var(--accent-2);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent);
-}
+#munInput:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }
 .wx-body { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.8rem; }
 .wx-now { display: flex; align-items: center; gap: .8rem; }
 .wx-emoji { font-size: 3rem; line-height: 1; }
@@ -445,7 +439,6 @@ kbd {
 .wx-city { color: var(--accent); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: .72rem; }
 .wx-skel { height: 96px; }
 
-/* hacker news */
 .hn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
 .hn-list li { display: flex; flex-direction: column; gap: .15rem; padding: .55rem .7rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); transition: border-color .2s ease, transform .2s ease; }
 .hn-list li:hover { border-color: var(--accent); transform: translateX(3px); }
@@ -453,23 +446,15 @@ kbd {
 .hn-list a:hover { color: var(--accent); }
 .hn-meta { font-size: .74rem; color: var(--muted); }
 
-/* heatmap github (dentro de Proyectos) */
 .gh-card { margin-top: 2rem; }
 .gh-summary { display: flex; gap: 1.6rem; margin-bottom: 1rem; }
 .gh-stat { display: flex; flex-direction: column; }
 .gh-stat strong { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--text); line-height: 1; }
 .gh-stat span { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .gh-heat {
-  display: grid;
-  grid-template-rows: repeat(7, 11px);
-  grid-auto-flow: column;
-  grid-auto-columns: 11px;
-  gap: 3px;
-  overflow-x: auto;
-  padding: .6rem;
-  border-radius: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  display: grid; grid-template-rows: repeat(7, 11px); grid-auto-flow: column;
+  grid-auto-columns: 11px; gap: 3px; overflow-x: auto; padding: .6rem;
+  border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);
 }
 .gh-cell { width: 11px; height: 11px; border-radius: 2px; border: 1px solid var(--border); }
 .gh-cell.gh-empty { visibility: hidden; }
@@ -479,7 +464,6 @@ kbd {
 .gh-swatches i { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
 
 .footer { background: var(--bg-2); border-top: 2px solid var(--accent); padding: 3.5rem 1.25rem 2rem; margin-top: 1.5rem; }
-/* Footer amb ratlles rojiblanques (només tema clar) */
 :root[data-theme="light"] .footer {
   background:
     repeating-linear-gradient(90deg,
@@ -497,6 +481,8 @@ kbd {
 .contact-head p { margin: 0.9rem auto 0; color: var(--text-soft); font-size: 1.05rem; }
 .contact-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
 .contact-info { display: grid; gap: 1rem; }
+/* [C6] Contenedor de las info-cards generadas desde template */
+.info-cards { display: grid; gap: 1rem; }
 .info-card {
   display: flex; gap: 1rem; align-items: flex-start;
   background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
@@ -509,8 +495,11 @@ kbd {
 .info-body { display: grid; gap: 0.3rem; min-width: 0; }
 .info-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .info-value { color: var(--text); font-weight: 600; font-style: normal; word-break: break-word; }
+.info-value-slot .info-value { margin: 0; }
 .info-value a { color: var(--text); text-decoration: none; transition: color 0.2s ease; }
 .info-value a:hover { color: var(--accent-2); text-decoration: underline; }
+/* [C6] Extra (botón copiar / link mapa) alineado a la izquierda */
+.info-extra { display: grid; justify-items: start; gap: 0.3rem; }
 .info-link { justify-self: start; margin-top: 0.2rem; font-size: 0.85rem; font-weight: 700; color: var(--accent-2); text-decoration: none; }
 .info-link:hover { text-decoration: underline; }
 .avail-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; margin-right: 0.45rem; animation: pulseGreen 1.8s ease-in-out infinite; }
@@ -579,7 +568,8 @@ html:not(.js) .reveal, html:not(.js) .card, html:not(.js) .tl-item, html:not(.js
 
 @keyframes heroIn { from { opacity: 0; transform: translateY(28px); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @keyframes glow { 0%, 100% { text-shadow: var(--title-glow); } 50% { text-shadow: var(--title-glow-strong); } }
-@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); transform: scale(1); } 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); transform: scale(1.25); } }
+/* [C6] pulse sin color-mix() en runtime: usa los tokens precomputados */
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--pulse-ring); transform: scale(1); } 50% { box-shadow: 0 0 0 8px var(--pulse-ring-0); transform: scale(1.25); } }
 @keyframes pulseGreen { 0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); } 50% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); } }
 @keyframes wheel { 0% { opacity: 1; transform: translateY(0); } 70% { opacity: 0; transform: translateY(12px); } 100% { opacity: 0; transform: translateY(0); } }
 @keyframes bgShift { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-3%, 3%) scale(1.08); } }
@@ -638,11 +628,8 @@ html:not(.js) .reveal, html:not(.js) .card, html:not(.js) .tl-item, html:not(.js
 .notfound { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 1rem; text-align: center; padding: 2rem; background: radial-gradient(circle at top, color-mix(in srgb, var(--bg) 88%, #1a1a24), var(--bg)); }
 .notfound h1 { font-size: clamp(4rem, 18vw, 9rem); margin: 0; line-height: 1; color: var(--text); text-shadow: var(--title-glow); }
 .nf-msg { color: var(--text-soft); max-width: 40ch; margin: 0 auto; }
-
-/* Título compacto para subpáginas (evita el h1 gigante en gracias.html) */
 .notfound .nf-title { font-size: clamp(1.7rem, 5vw, 2.6rem); }
 
-/* CV imprimible a PDF */
 @media print {
   .skip-link, .cursor-dot, .cursor-ring, .theme-toggle, .cv-actions, .bottom-nav { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
