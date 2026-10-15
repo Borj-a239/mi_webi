@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV · Borja Albert Bataller</title>
+  <meta name="description" content="Currículum de Borja Albert Bataller, estudiante de 1º DAM (IES Simarro). Formación, tecnologías y proyectos." />
+  <meta property="og:type" content="profile" />
+  <meta property="og:title" content="CV · Borja Albert Bataller" />
+  <meta property="og:description" content="Currículum de 1º DAM: formación, tecnologías y proyectos." />
+  <meta property="og:url" content="https://borj-a239.github.io/web-personal/cv.html" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23d4ff00'/><text x='50%25' y='54%25' font-family='Arial' font-size='30' font-weight='900' fill='black' text-anchor='middle' dominant-baseline='middle'>BA</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    (function(){var t;try{t=localStorage.getItem("theme");if(!t)t=window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}catch(e){t="dark";}document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="light"?"#ffffff":"#0a0a0f");})();
+  </script>
+  <script src="layout.js" defer></script>
+  <style>
+    .cv-wrap { max-width: 820px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+    .cv-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .cv-head h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.6rem); }
+    .cv-sub { color: var(--muted); margin: 0 0 2rem; }
+    .cv-contact { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; margin: 0 0 2rem; font-size: .9rem; color: var(--text-soft); }
+    .cv-contact a { color: var(--accent-2); text-decoration: none; }
+    .cv-actions { display: flex; gap: .8rem; flex-wrap: wrap; margin: 1.5rem 0 2.5rem; }
+    @media print {
+      .skip-link, .cursor-dot, .cursor-ring, .theme-toggle, .cv-actions, .bottom-nav { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .cv-wrap { padding: 0; }
+      .cv-head h1 { color: #000; }
+      .card, .tl-content { box-shadow: none !important; border-color: #ccc !important; }
+      .tl-tag, .badge-tech { border-color: #999 !important; color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="cv-wrap" id="contenido">
+    <div class="cv-head">
+      <span class="monogram" aria-hidden="true">BA</span>
+      <div>
+        <h1>Borja Albert Bataller</h1>
+        <p class="cv-sub">Estudiante de 1º DAM · IES Simarro · Xàtiva (Valencia)</p>
+      </div>
+    </div>
+
+    <p class="cv-contact">
+      <a href="mailto:boralbbat@alu.edu.gva.es">boralbbat@alu.edu.gva.es</a>
+      <span>·</span>
+      <a href="https://github.com/Borj-a239" target="_blank" rel="noopener">github.com/Borj-a239</a>
+      <span>·</span>
+      <span>Xàtiva, Comunitat Valenciana</span>
+    </p>
+
+    <div class="cv-actions no-print">
+      <button class="btn" type="button" onclick="window.print()">⬇ Descargar PDF</button>
+      <a class="btn btn-ghost" href="index.html">← Volver a la web</a>
+    </div>
+
+    <section aria-labelledby="cv-perfil">
+      <h2 id="cv-perfil">Perfil</h2>
+      <p class="section-intro">Vengo del hardware (GM de SMX) y ahora programo software. Me gusta entender las cosas por dentro, de la pieza al código. Curioso, constante y con ganas de aprender algo nuevo cada día.</p>
+    </section>
+
+    <section aria-labelledby="cv-formacion">
+      <h2 id="cv-formacion">Formación</h2>
+      <ol class="timeline">
+        <li class="tl-item done"><span class="tl-dot"></span><div class="tl-content"><span class="tl-tag">Completado</span><h3>GM de SMX</h3><p>Sistemas Microinformáticos y Redes.</p></div></li>
+        <li class="tl-item current"><span class="tl-dot"></span><div class="tl-content"><span class="tl-tag">En curso</span><h3>1º GS DAM</h3><p>Desarrollo de Aplicaciones Multiplataforma · IES Simarro.</p></div></li>
+        <li class="tl-item goal"><span class="tl-dot"></span><div class="tl-content"><span class="tl-tag">Meta</span><h3>Programador / Profesor</h3><p>Trabajar programando o enseñando lo que aprendo.</p></div></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="cv-tech">
+      <h2 id="cv-tech">Tecnologías</h2>
+      <ul class="badges">
+        <li class="badge-tech"><span class="badge-dot" style="background:#E34C26"></span>HTML5</li>
+        <li class="badge-tech"><span class="badge-dot" style="background:#1572B6"></span>CSS3</li>
+        <li class="badge-tech"><span class="badge-dot" style="background:#F7DF1E"></span>JavaScript</li>
+        <li class="badge-tech"><span class="badge-dot" style="background:#F05032"></span>Git</li>
+        <li class="badge-tech"><span class="badge-dot" style="background:#8b5cf6"></span>GitHub</li>
+        <li class="badge-tech"><span class="badge-dot" style="background:#007ACC"></span>VS Code</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="cv-proyectos">
+      <h2 id="cv-proyectos">Proyectos</h2>
+      <div class="grid">
+        <article class="card azul"><h3>Web personal</h3><p>Hecha a mano con HTML, CSS y JS vanilla. Modo claro/oscuro, scroll-spy, 3 APIs externas (GitHub, Open-Meteo, Hacker News) y formulario real vía Formspree.</p></article>
+        <article class="card rojo"><h3>Juego en GDevelop</h3><p>Prototipo jugable de principio a fin en la ESO, con lógica por eventos sin escribir código.</p></article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
