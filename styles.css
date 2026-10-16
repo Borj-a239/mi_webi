@@ -216,8 +216,7 @@ kbd {
 .hero-content .tagline { animation-delay: 0.4s; }
 .hero-content .hero-actions { animation-delay: 0.55s; }
 .badge { display: inline-block; margin: 0 0 1rem; padding: 0.5rem 0.9rem; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); color: var(--text-soft); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em; }
-.hero h1 { margin: 0 0 1rem; font-size: clamp(2.75rem, 9vw, 5.5rem); color: var(--text); text-shadow: var(--title-glow); animation: heroIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards, glow 4s ease-in-out 1s infinite; }
-.tagline { margin: 0 auto 2rem; color: var(--text-soft); font-size: clamp(1.05rem, 2.5vw, 1.25rem); min-height: 3.2rem; }
+.hero h1 { margin: 0 0 1rem; font-size: clamp(2.75rem, 9vw, 5.5rem); color: var(--text); text-shadow: var(--title-glow); animation: heroIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards; }.tagline { margin: 0 auto 2rem; color: var(--text-soft); font-size: clamp(1.05rem, 2.5vw, 1.25rem); min-height: 3.2rem; }
 .hero-actions { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; }
 .btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.9rem 1.4rem; border-radius: 999px; text-decoration: none; font-weight: 800; color: var(--on-accent); border: 1px solid var(--border-strong); background: var(--brand-grad); box-shadow: 0 12px 28px var(--shadow); cursor: pointer; font-size: 1rem; font-family: inherit; transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .btn::after { content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-20deg); transition: left 0.5s ease; }

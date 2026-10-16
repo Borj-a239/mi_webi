@@ -447,7 +447,7 @@
       extra: '<a class="info-link" href="https://www.google.com/maps?q=X%C3%A0tiva+Valencia" target="_blank" rel="noopener noreferrer">Ver en el mapa ↗</a>' },
     { icon: "star", label: "Disponibilidad",
       value: '<span class="info-value"><span class="avail-dot" aria-hidden="true"></span>Abierto a prácticas y proyectos</span>',
-      extra: "" }
+      extra: '<a class="info-link" href="cv.html">Ver CV (PDF) ↗</a>' }
   ];
   function mountInfoCards() {
     var host = document.getElementById("infoCards");
@@ -1076,13 +1076,7 @@
   });
 
   /* ============================================================
-     [C1] XATBOT DE CONTACTE — respuesta automática rule-based
-     Gratis, sin backend y sin API keys. Recorrido del dato:
-     entrada -> normalizar (sin acentos/minúsculas) -> puntuar
-     reglas por keywords -> renderizar burbuja + quick replies ->
-     si hay accio: prefill del #contactForm -> submit Formspree ->
-     correo real. Reutiliza helpers del IIFE (escapeHtml, goToSection,
-     form/fName/fMsg, showThanks).
+     [C1+X] XATBOT DE CONTACTE — respuesta automática + herramientas
      ============================================================ */
   var botLauncher = document.getElementById("botLauncher");
   var botPanel = document.getElementById("botPanel");
@@ -1096,29 +1090,240 @@
   function botCap(s) { return (s || "").replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
   function botNorm(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
   function botRich(t) { return escapeHtml(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); }
+  function fmt(n) {
+    if (!isFinite(n)) throw new Error("Resultado no finito");
+    if (Number.isInteger(n)) return String(n);
+    return String(Math.round(n * 1e8) / 1e8);
+  }
 
-  // Base de conocimiento local. Cada regla: id, keywords, respuesta,
-  // quick replies [texto, id-destino] y acción opcional.
+  var FUNCS = {
+    sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs,
+    sin: Math.sin, cos: Math.cos, tan: Math.tan,
+    asin: Math.asin, acos: Math.acos, atan: Math.atan, atan2: Math.atan2,
+    log: function (x) { return Math.log10(x); }, ln: Math.log, log2: Math.log2,
+    exp: Math.exp, round: Math.round, floor: Math.floor, ceil: Math.ceil,
+    pow: Math.pow, min: Math.min, max: Math.max, hypot: Math.hypot, sign: Math.sign
+  };
+  function tokenize(src) {
+    var t = [], i = 0;
+    while (i < src.length) {
+      var c = src[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (/[0-9.]/.test(c)) {
+        var num = "";
+        while (i < src.length && /[0-9.]/.test(src[i])) num += src[i++];
+        if ((num.match(/\./g) || []).length > 1) throw new Error("Numero invalido");
+        t.push({ type: "num", value: parseFloat(num) }); continue;
+      }
+      if (/[a-z]/.test(c)) {
+        var name = "";
+        while (i < src.length && /[a-z]/.test(src[i])) name += src[i++];
+        t.push({ type: "name", value: name }); continue;
+      }
+      if ("+-*/%^(),".indexOf(c) >= 0) { t.push({ type: c }); i++; continue; }
+      throw new Error("Caracter no reconocido");
+    }
+    return t;
+  }
+  function parse(tokens) {
+    var pos = 0;
+    function peek() { return tokens[pos]; }
+    function eat(type) { if (peek() && peek().type === type) return tokens[pos++]; throw new Error("Se esperaba " + type); }
+    function expr() {
+      var left = term();
+      while (peek() && (peek().type === "+" || peek().type === "-")) {
+        var op = tokens[pos++].type; var right = term();
+        left = op === "+" ? left + right : left - right;
+      }
+      return left;
+    }
+    function term() {
+      var left = factor();
+      while (peek() && (peek().type === "*" || peek().type === "/" || peek().type === "%")) {
+        var op = tokens[pos++].type; var right = factor();
+        if (op === "*") left *= right;
+        else if (op === "/") { if (right === 0) throw new Error("Division por cero"); left /= right; }
+        else { if (right === 0) throw new Error("Modulo por cero"); left %= right; }
+      }
+      return left;
+    }
+    function factor() {
+      var base = unary();
+      if (peek() && peek().type === "^") { pos++; var e = factor(); return Math.pow(base, e); }
+      return base;
+    }
+    function unary() {
+      if (peek() && peek().type === "-") { pos++; return -unary(); }
+      if (peek() && peek().type === "+") { pos++; return unary(); }
+      return primary();
+    }
+    function primary() {
+      var tk = peek();
+      if (!tk) throw new Error("Expresion incompleta");
+      if (tk.type === "num") { pos++; return tk.value; }
+      if (tk.type === "(") { pos++; var v = expr(); eat(")"); return v; }
+      if (tk.type === "name") {
+        pos++; var nm = tk.value;
+        if (nm === "pi") return Math.PI;
+        if (nm === "e") return Math.E;
+        if (FUNCS[nm]) {
+          eat("("); var args = [];
+          if (peek() && peek().type !== ")") { args.push(expr()); while (peek() && peek().type === ",") { pos++; args.push(expr()); } }
+          eat(")"); return FUNCS[nm].apply(null, args);
+        }
+        throw new Error("Funcion desconocida");
+      }
+      throw new Error("Token inesperado");
+    }
+    var r = expr();
+    if (pos < tokens.length) throw new Error("Sobra texto");
+    return r;
+  }
+  function tryMath(raw) {
+    var t = botNorm(raw)
+      .replace(/(calcula(?:r)?|cuanto\s+es|cuanto\s+vale|resultado\s+de|resuelve|halla(?:r)?|dame|por\s+favor|la\s+cuenta|operacion(?:es)?|matematicas|cuenta|=|igual)/g, " ")
+      .trim();
+    if (!/[0-9]/.test(t)) return null;
+    var hasOp = /[+\-*/%^()]/.test(t);
+    var hasFunc = /\b(sqrt|cbrt|abs|sin|cos|tan|asin|acos|atan|atan2|log|ln|log2|exp|round|floor|ceil|pow|min|max|hypot|sign)\b/.test(t);
+    if (!hasOp && !hasFunc) return null;
+    if (!/^[\s0-9+\-*/%^().,a-z]+$/.test(t)) return null;
+    try { return { answer: "El resultado es **" + fmt(parse(tokenize(t))) + "**" }; }
+    catch (e) { return null; }
+  }
+  function tryDate(t) {
+    if (/(hora|fecha|que dia|día de la semana|today|now|ahora)/.test(t) && !/manana|ayer|pasado|proxim|semana que viene/.test(t)) {
+      return { answer: "Ahora mismo es **" + new Date().toLocaleString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) + "** 🗓️" };
+    }
+    return null;
+  }
+  function tryDice(t) {
+    var m = t.match(/(\d*)\s*d\s*(\d+)/);
+    if (m) {
+      var c = parseInt(m[1] || "1", 10), s = parseInt(m[2], 10);
+      if (c < 1 || c > 100 || s < 2 || s > 1000) return { answer: "Dados demasiado grandes (max 100d1000)." };
+      var rolls = [], tot = 0;
+      for (var i = 0; i < c; i++) { var r = 1 + Math.floor(Math.random() * s); rolls.push(r); tot += r; }
+      return { answer: "🎲 **" + c + "d" + s + "**: " + rolls.join(", ") + " → total **" + tot + "**" };
+    }
+    if (/(tirar un dado|lanza un dado|tira un dado|un dado)/.test(t)) return { answer: "🎲 Has sacado un **" + (1 + Math.floor(Math.random() * 6)) + "**" };
+    return null;
+  }
+  function tryCoin(t) { if (/(moneda|cara o cruz)/.test(t)) return { answer: "🪙 Ha salido **" + (Math.random() < 0.5 ? "CARA" : "CRUZ") + "**" }; return null; }
+  function tryRandom(t) {
+    var m = t.match(/(?:numero aleatorio|aleatorio|random)[^\d]*(\d+)[^\d]+(\d+)/);
+    if (m) { var a = parseInt(m[1], 10), b = parseInt(m[2], 10); if (a > b) { var tmp = a; a = b; b = tmp; } return { answer: "🎯 Entre " + a + " y " + b + ": **" + (a + Math.floor(Math.random() * (b - a + 1))) + "**" }; }
+    return null;
+  }
+  function tryUnits(t) {
+    var m;
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*°?\s*c\s*(?:a|->|→)\s*f/))) { var c = parseFloat(m[1].replace(",", ".")); return { answer: c + " °C = **" + fmt(c * 9 / 5 + 32) + " °F**" }; }
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*°?\s*f\s*(?:a|->|→)\s*c/))) { var f = parseFloat(m[1].replace(",", ".")); return { answer: f + " °F = **" + fmt((f - 32) * 5 / 9) + " °C**" }; }
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:km|kilometros?)\s*(?:a|->|→)\s*(?:mi|millas?)/))) { var km = parseFloat(m[1].replace(",", ".")); return { answer: km + " km = **" + fmt(km * 0.621371) + " millas**" }; }
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:mi|millas?)\s*(?:a|->|→)\s*(?:km|kilometros?)/))) { var mi = parseFloat(m[1].replace(",", ".")); return { answer: mi + " mi = **" + fmt(mi * 1.60934) + " km**" }; }
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:kg|kilos?)\s*(?:a|->|→)\s*(?:lb|libras?)/))) { var kg = parseFloat(m[1].replace(",", ".")); return { answer: kg + " kg = **" + fmt(kg * 2.20462) + " lb**" }; }
+    if ((m = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:lb|libras?)\s*(?:a|->|→)\s*(?:kg|kilos?)/))) { var lb = parseFloat(m[1].replace(",", ".")); return { answer: lb + " lb = **" + fmt(lb * 0.453592) + " kg**" }; }
+    return null;
+  }
+  function tryColor(t) {
+    var h = t.match(/#?([0-9a-f]{6})/);
+    if (h && /(color|rgb|hsl|hex|convert)/.test(t)) {
+      var r = parseInt(h[1].substr(0, 2), 16), g = parseInt(h[1].substr(2, 2), 16), b = parseInt(h[1].substr(4, 2), 16);
+      return { answer: "🎨 #" + h[1] + " = rgb(" + r + "," + g + "," + b + ")" };
+    }
+    return null;
+  }
+  function tryPassword(t) {
+    if (/(contrase|password|clave|genera.*segu)/.test(t)) {
+      var chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*", len = 16, m = t.match(/(\d{2,20})/);
+      if (m) len = Math.min(64, Math.max(8, parseInt(m[1], 10)));
+      var out = "", pool = new Uint32Array(len);
+      if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(pool); else for (var z = 0; z < len; z++) pool[z] = Math.floor(Math.random() * 1e9);
+      for (var i = 0; i < len; i++) out += chars[pool[i] % chars.length];
+      return { answer: "🔒 Contraseña (" + len + " car.): `" + out + "`" };
+    }
+    return null;
+  }
+  function tryPercent(t) {
+    var m = t.match(/(?:cuanto es|calcula)?\s*(\d+(?:[.,]\d+)?)\s*%\s*de\s*(\d+(?:[.,]\d+)?)/);
+    if (m) { var p = parseFloat(m[1].replace(",", ".")), base = parseFloat(m[2].replace(",", ".")); return { answer: "El " + p + "% de " + base + " es **" + fmt(base * p / 100) + "**" }; }
+    return null;
+  }
+  function tryRule3(t) {
+    var m = t.match(/(?:si|regla de tres)[^\d]*(\d+(?:[.,]\d+)?)\s*[=:]\s*(\d+(?:[.,]\d+)?)[^\d]*(\d+(?:[.,]\d+)?)\s*[=:?]/);
+    if (m) { var a = parseFloat(m[1].replace(",", ".")), b = parseFloat(m[2].replace(",", ".")), c = parseFloat(m[3].replace(",", ".")); return { answer: "Regla de tres: si " + a + "=" + b + ", " + c + " = **" + fmt(b * c / a) + "**" }; }
+    return null;
+  }
+  function tryBMI(t) {
+    var m = t.match(/(?:imc|indice de masa corporal)[^\d]*(\d+(?:[.,]\d+)?)\s*(?:kg|kilos?)?[^\d]*(\d+(?:[.,]\d+)?)\s*(?:cm|centimetros?)?/);
+    if (m) {
+      var w = parseFloat(m[1].replace(",", ".")), h = parseFloat(m[2].replace(",", "."));
+      if (h > 3) h /= 100;
+      var imc = w / (h * h), cat = imc < 18.5 ? "bajo peso" : imc < 25 ? "normopeso" : imc < 30 ? "sobrepeso" : "obesidad";
+      return { answer: "IMC = **" + fmt(imc) + "** (" + cat + ")" };
+    }
+    return null;
+  }
+  function botTool(raw) {
+    var t = botNorm(raw);
+    var fns = [tryMath, tryPercent, tryRule3, tryBMI, tryUnits, tryColor, tryPassword, tryDice, tryCoin, tryRandom, tryDate];
+    for (var i = 0; i < fns.length; i++) { var r = fns[i](t); if (r) return r; }
+    return null;
+  }
+
   var BOT_KB = [
-    { id: "greet", keys: ["hola","buenas","hey","que tal","saludos","holi","bon dia","buenos dias","buenas tardes"],
-      res: "¡Hola! 👋 Soy el asistente de Borja. Puedo contarte qué estudia, si está disponible para prácticas, enseñarte sus proyectos o abrirte directamente el formulario de contacto.",
-      quick: [["¿Quién es Borja?","who"],["¿Está disponible?","avail"],["Ver proyectos","projects"],["Escribirle","contact"]] },
+    { id: "greet", keys: ["hola", "buenas", "hey", "que tal", "saludos", "holi", "bon dia", "buenos dias", "buenas tardes"],
+      res: "Hola, bienvenido al chat asistente. ¿En qué te puedo ayudar? 👋",
+      quick: [["¿Qué puedes hacer?","help"],["¿Quién es Borja?","who"],["Escribirle","contact"]] },
+
+    { id: "help", keys: ["que puedes","que sabes","ayuda","help","funciones","comandos","opciones","para que sirves"],
+      res: "Esto es lo que puedo hacer:\n• 🧮 **Calcular** (sumas, `sqrt(144)`, `sin(pi/2)`, `%`, regla de tres, IMC)\n• 🗓️ Darte la **fecha y la hora**\n• 🎲 **Tirar dados** (`tirada 2d20`) y 🪙 **moneda**\n• 🎯 **Números aleatorios** (`aleatorio 1-100`)\n• 🌡️ **Convertir unidades** (`30 c a f`)\n• 🎨 **Color** (`#d4ff00`)\n• 🔒 **Contraseña** segura\n• Y contarte el perfil de Borja.\n\n⚠️ **Aviso:** soy un bot de reglas y solo respondo a un número **limitado de frases programadas**. Si no entiendo algo, pulsa una opción o escríbele a Borja por el formulario.",
+      quick: [["¿Quién es Borja?","who"],["Escribirle","contact"]] },
 
     { id: "who", keys: ["quien eres","quien es","sobre ti","sobre el","borja","que haces","a que te dedicas","eres"],
-      res: "Borja Albert Bataller, estudiante de **1º DAM** en el IES Simarro (Xàtiva). Vengo del mundo del hardware (GM de SMX) y ahora programo. Le van los shooters, montar PCs y el Atleti. 🎮⚽",
+      res: "Borja Albert Bataller, estudiante de **1º DAM** en el IES Simarro (Xàtiva). Vengo del hardware (GM de SMX) y ahora programo. Le van los shooters, montar PCs y el Atleti. 🎮⚽",
       quick: [["Formación","form"],["Proyectos","projects"],["Escribirle","contact"]] },
 
     { id: "form", keys: ["formacion","estudia","dam","ies","simarro","clases","estudios","gm","smx","asignatura"],
-      res: "Está en **1º DAM** (Desarrollo de Aplicaciones Multiplataforma) en el IES Simarro. Antes hizo GM de SMX (Sistemas Microinformáticos y Redes). Su meta: trabajar programando o acabar enseñando. 📚",
-      quick: [["Proyectos","projects"],["Disponibilidad","avail"],["Escribirle","contact"]] },
+      res: "Está en **1º DAM** (Desarrollo de Aplicaciones Multiplataforma) en el IES Simarro. Antes hizo GM de SMX. Su meta: trabajar programando o acabar enseñando. 📚",
+      quick: [["Modulos de DAM","modules"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "modules", keys: ["modulos","asignaturas","programacion","bases de datos","entornos","marcas","sgid","fol","itinerarios","que estudia"],
+      res: "En 1º DAM ve: **Programación**, **Bases de Datos**, **Entornos de Desarrollo**, **Lenguaje de Marcas**, **Sistemas de Gestión de Información (SGID)**, **Formación y Orientación Laboral (FOL)** e **Itinerarios Personalizados**. Lo que más le engancha es Programación. 💻",
+      quick: [["Lenguajes","langs"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "langs", keys: ["lenguaje","lenguajes","java","python","javascript","c#","html","css","que lenguajes"],
+      res: "Trabaja sobre todo con **HTML, CSS y JavaScript** (esta web) y **Java** en clase. También toca **SQL** en Bases de Datos y algo de **C#**. Y Git/GitHub para todo. 🛠️",
+      quick: [["Editor","editor"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "editor", keys: ["editor","vscode","vs code","figma","herramientas","programa"],
+      res: "Usa **VS Code** como editor, **Figma** para diseñar y **Git + GitHub** para versionar. Nada de frameworks: HTML, CSS y JS a pelo. ✍️",
+      quick: [["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "cv", keys: ["cv","curriculum","hoja de vida","pdf","dossier","descargar"],
+      res: "Su CV está disponible en **cv.html**: perfil, formación, tecnologías y proyectos, con botón para descargarlo a PDF desde el navegador. 📄",
+      action: "page:cv.html", actionLabel: "Ver el CV",
+      quick: [["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "location", keys: ["donde vive","ubicacion","ciudad","xativa","valencia","de donde"],
+      res: "Vive en **Xàtiva**, Comunitat Valenciana. Estudia en el IES Simarro. 📍",
+      quick: [["Ver en el mapa","map"],["Escribirle","contact"]] },
+
+    { id: "age", keys: ["edad","cuantos años","años tiene","curso"],
+      res: "Está en **1º de DAM**, así que en el rango de la FP de grado superior. Lo concreto, pregúntaselo por el formulario. 🙂",
+      quick: [["Formación","form"],["Escribirle","contact"]] },
+
+    { id: "social", keys: ["red social","instagram","linkedin","twitter","x","contacto redes"],
+      res: "Lo tienes en el pie de página: **GitHub** (@Borj-a239), **LinkedIn** e **Instagram**. El GitHub es el que más cuida. 🔗",
+      quick: [["Proyectos","projects"],["Escribirle","contact"]] },
 
     { id: "avail", keys: ["disponible","practicas","trabajo","empleo","freelance","presupuesto","precio","contratar","horario","fct","practica"],
-      res: "Está **abierto a prácticas (FCT) y proyectos**. Si quieres que te eche un cable o quieres su CV, lo más rápido es el formulario: me llega al correo al instante. 📬",
+      res: "Está **abierto a prácticas (FCT) y proyectos**. Si quieres que te eche un cable, lo más rápido es el formulario: me llega al correo al instante. 📬",
       action: "form", actionLabel: "Abrir formulario",
       quick: [["Ver proyectos","projects"],["Su correo","mail"]] },
 
     { id: "projects", keys: ["proyecto","proyectos","github","repos","repositorio","juego","gdevelop","portfolio","hecho","codigo"],
-      res: "Todo su código está en GitHub (@Borj-a239): esta web, ejercicios de DAM y un juego en GDevelop. Lo tienes en la sección **Proyectos** de la web, cargado en vivo desde la API. 🚀",
+      res: "Todo su código está en GitHub (@Borj-a239): esta web, ejercicios de DAM y un juego en GDevelop. Lo tienes en la sección **Proyectos**, cargado en vivo desde la API. 🚀",
       action: "section:proyectos", actionLabel: "Ver Proyectos",
       quick: [["Disponibilidad","avail"],["Escribirle","contact"]] },
 
@@ -1132,9 +1337,17 @@
       action: "mail", actionLabel: "Enviar correo",
       quick: [["Escribirle","contact"],["Ver proyectos","projects"]] },
 
+    { id: "map", keys: ["mapa","donde esta el centro","google maps"],
+      res: "Te abro el mapa de Xàtiva en la sección Contacto. 🗺️",
+      action: "section:contacto", actionLabel: "Ver mapa" },
+
     { id: "hobbies", keys: ["videojuego","juego","halo","cs","valorant","call of duty","rainbow","battlefield","futbol","atletico","atleti","gusta","hobby"],
       res: "Le van los shooters (Halo, CS2, Valorant, CoD, Rainbow Six, Battlefield), montar PCs y redes, y es del Atleti. 💪❤️🤍",
       quick: [["Formación","form"],["Proyectos","projects"],["Escribirle","contact"]] },
+
+    { id: "humor", keys: ["chiste","broma","risa","divierte","humor"],
+      res: "¿Por qué los programadores confunden Halloween y Navidad? Porque **Oct 31 == Dec 25**. 🎃🎄",
+      quick: [["Otro chiste","humor"],["Escribirle","contact"]] },
 
     { id: "name", keys: ["me llamo","mi nombre es","nombre es"],
       res: function (t) {
@@ -1173,7 +1386,6 @@
     botLog.appendChild(el);
     botLog.scrollTop = botLog.scrollHeight;
   }
-  function botSay(text) { botBubble("bot", botRich(text)); }
   function botTyping(on) {
     var el = document.getElementById("botTyping");
     if (on) {
@@ -1197,7 +1409,7 @@
   }
   function botReply(rule, userText) {
     var res = typeof rule.res === "function" ? rule.res(userText || "") : rule.res;
-    botBubble("bot", botRich(res));
+    botBubble("bot", botRich(res).replace(/\n/g, "<br>"));
     if (rule.action) {
       var btn = document.createElement("button");
       btn.type = "button"; btn.className = "bot-action";
@@ -1215,7 +1427,7 @@
       if (fMsg && !fMsg.value) fMsg.value = "Hola Borja, te escribo desde el asistente de la web: ";
       if (fName) fName.focus();
     }, 500);
-    botSay("Te he abierto el formulario de contacto aquí abajo. 👇");
+    botBubble("bot", botRich("Te he abierto el formulario de contacto aquí abajo. 👇"));
   }
   function botSend(text, intentId) {
     if (!botOpen) openBot();
@@ -1226,6 +1438,12 @@
     var delay = prefersReducedMotion ? 0 : 420;
     setTimeout(function () {
       botTyping(false);
+      var tool = botTool(text || "");
+      if (tool) {
+        botBubble("bot", botRich(tool.answer));
+        renderQuick([["¿Qué puedes hacer?","help"],["Escribirle","contact"]]);
+        return;
+      }
       var rule = intentId ? BOT_BY_ID[intentId] : botBest(text);
       botReply(rule || BOT_BY_ID["greet"], text || "");
     }, delay);
@@ -1253,15 +1471,8 @@
 
   if (botLauncher) botLauncher.addEventListener("click", function () { botOpen ? closeBot() : openBot(); });
   if (botCloseBtn) botCloseBtn.addEventListener("click", closeBot);
-  if (botFormEl) botFormEl.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var v = botInput.value.trim();
-    if (v) botSend(v);
-  });
-  if (botQuick) botQuick.addEventListener("click", function (e) {
-    var c = e.target.closest("[data-bot-intent]");
-    if (c) botSend(c.textContent, c.getAttribute("data-bot-intent"));
-  });
+  if (botFormEl) botFormEl.addEventListener("submit", function (e) { e.preventDefault(); var v = botInput.value.trim(); if (v) botSend(v); });
+  if (botQuick) botQuick.addEventListener("click", function (e) { var c = e.target.closest("[data-bot-intent]"); if (c) botSend(c.textContent, c.getAttribute("data-bot-intent")); });
   if (botLog) botLog.addEventListener("click", function (e) {
     var a = e.target.closest("[data-bot-action]");
     if (!a) return;
@@ -1269,5 +1480,6 @@
     if (act === "form") botOpenForm();
     else if (act === "mail") window.location.href = "mailto:boralbbat@alu.edu.gva.es";
     else if (act.indexOf("section:") === 0) goToSection(act.slice(8));
+    else if (act.indexOf("page:") === 0) window.location.href = act.slice(5);
   });
 })();
