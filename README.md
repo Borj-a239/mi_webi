@@ -45,7 +45,23 @@ Soy estudiante de **1º DAM** en el IES Simarro (Xàtiva). Vengo del hardware (G
 
 ## 📁 Estructura
 
-web-personal/ ├── index.html Página principal (9 secciones) ├── cv.html Currículum (4ª página) + print-to-PDF ├── 404.html Página de error ├── gracias.html Confirmación de envío ├── styles.css Hoja de estilos (tokens CSS, 2 temas) ├── script.js Lógica de la página principal ├── layout.js Componentes reutilizables (chrome de subpáginas) ├── docs/ │ ├── adr/ Architecture Decision Records │ └── prompts/ Órdenes clave a la IA (archivadas) ├── img/ Imágenes propias (WebP) ├── mp3/ · mp4/ Audio y vídeo propios └── juego/ Juego GDevelop autoalojado
+```text
+web-personal/
+├── index.html       → Página principal (9 secciones)
+├── cv.html          → Currículum (4ª página) + print-to-PDF
+├── 404.html         → Página de error
+├── gracias.html     → Confirmación de envío
+├── styles.css       → Hoja de estilos (tokens CSS, 2 temas)
+├── script.js        → Lógica de la página principal
+├── layout.js        → Componentes reutilizables (chrome de subpáginas)
+├── docs/
+│   ├── adr/         → Architecture Decision Records
+│   └── prompts/     → Órdenes clave a la IA (archivadas)
+├── img/             → Imágenes propias (WebP)
+├── mp3/             → Audio propio
+├── mp4/             → Vídeo propio
+└── juego/           → Juego GDevelop autoalojado
+```
 
 
 ## 🗂️ Páginas (4)
