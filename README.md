@@ -107,12 +107,12 @@ Best Practices	96
 SEO	100
 Optimizaciones: imágenes en WebP con loading="lazy", display=swap en fuentes, canvas que se pausa con visibilitychange, prefers-reduced-motion respetado.
 
-🏛️ Decisiones de arquitectura (ADRs)
-Documentadas en docs/adr/:
-
-ADR-001 — JavaScript vanilla en lugar de framework.
-ADR-002 — Tema claro/oscuro con CSS variables + localStorage.
-Cada ADR sigue el formato Contexto → Decisión → Consecuencias.
+🏛️ Decisiones de arquitectura (ADRs) — docs/adr/
+- ADR-001 · Variables CSS en vez de SASS
+- ADR-002 · Persistencia del tema con localStorage
+- ADR-003 · Carga bajo demanda del juego (click-to-play)
+- ADR-004 · Xatbot rule-based sin backend ni API keys
+- ADR-005 · Evaluador matemático propio
 
 🤖 Proceso y uso de la IA
 He usado IA como apoyo, no como generador automático. Las órdenes clave están archivadas en docs/prompts/. El trabajo real (validar, corregir, entender) es mío. El historial de commits y el changelog (v1.0 → v2.4) muestran la iteración.
